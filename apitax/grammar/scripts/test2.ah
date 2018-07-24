@@ -1,0 +1,8 @@
+name "test2apitaxtest"
+
+set crap = "ALL CAPS ARE FANTASTIC"
+
+export crap
+
+
+export ct("script apitax/grammar/scripts/test4.ah")

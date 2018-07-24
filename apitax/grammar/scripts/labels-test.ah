@@ -1,0 +1,33 @@
+name "labels-test";
+
+hey = int(0);
+
+ridi = {};
+
+ridi.{{hey}} = {"first": "good"};
+
+log(ridi);
+
+log(ridi.{{hey}}.first);
+
+ridi.1 = ["Yes"];
+
+log(ridi.1.0);
+
+//error;
+
+//error "some error message";
+
+$imALabel = {"name": "okay"};
+
+log(imALabel.$name);
+
+endpoint = "https://jsonplaceholder.typicode.com/";
+
+url endpoint;
+
+post("/shawns_great", {'strict': true});
+
+log('test did we get here');
+
+
