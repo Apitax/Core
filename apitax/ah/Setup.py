@@ -166,8 +166,6 @@ class Setup:
         State.config = self.config
         State.options = self.options
         State.log = self.log
-        if(State.paths['node'] == ""):
-            State.paths['node'] = getRoot('/apitax/ah/api/dashboard')
         if(State.paths['log'] == ""):
             State.paths['log'] = self.logPath
         if(State.paths['root'] == ""):
@@ -182,6 +180,8 @@ class Setup:
             self.log.log('')
 
         Drivers.initialize()
+        
+    def load(self):
         drivers = self.config.getAsList('drivers')
         for driver in drivers:
             LoadedDrivers.load(driver)

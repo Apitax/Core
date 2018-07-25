@@ -7,33 +7,22 @@ RUN apt-get update
 # Install system level things
 RUN apt-get -y install git pandoc
 
-# Install NodeJS and NPM
-RUN cd /tmp && curl -sL https://deb.nodesource.com/setup_10.x | bash -
-RUN apt-get -y install nodejs npm
 RUN apt-get -y install build-essential
 
 # Set the working directory to /app
 WORKDIR /app
 
-# Copy the current directory contents into the container at /app
-# This essentially bakes your project which uses Apitax into the image
-# This folder should contain ['requirements.txt', 'Dockerfile', 'App/']
-ADD . /app
-
 # Get pip setup
 RUN pip install wheel setuptools
 
 # Install Apitax
-RUN pip install apitax
+RUN pip install 'apitax==2.2.8'
 
-# Install any needed packages specified in requirements.txt
-RUN cd /app && pip install . ; exit 0
+RUN cd /app && touch __init__.py
+RUN cd /app && touch project.py
+RUN cd /app && touch config.txt
 
-# Navigate to the web directory and install npm packages and build using webpack
-RUN cd /usr/local/lib/python3.6/site-packages/apitax/ah/api/dashboard && npm install && npm run build
-
-# Return to the working directory
-WORKDIR /app
+COPY main.py /app/main.py
 
 # Make port 80 available to the world outside this container
 EXPOSE 80
