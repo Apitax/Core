@@ -147,32 +147,32 @@ Scriptax is an API first automation language. Scriptax is not a general purpose 
     * Commandtax execution
     * A command is executed during the parsing of the line and its response is returned
     * Supports async, callbacks
-* `get(required: "\<someCommand\>", optional: {dataObj}, optional: param1...n) {% %}
+* `get(required: "\<someCommand\>", optional: {dataObj}, optional: param1...n) {% %}`
     * Executes a get request
     * Data Object takes optional keys which correspond to Commandtax custom data: `post, query, path, header`
     * Returns the result
     * Supports async, callbacks
-* `put(required: "\<someCommand\>", optional: {dataObj}, optional: param1...n) {% %}
+* `put(required: "\<someCommand\>", optional: {dataObj}, optional: param1...n) {% %}`
     * Executes a put request
     * Data Object takes optional keys which correspond to Commandtax custom data: `post, query, path, header`
     * Returns the result
     * Supports async, callbacks
-* `patch(required: "\<someCommand\>", optional: {dataObj}, optional: param1...n) {% %}
+* `patch(required: "\<someCommand\>", optional: {dataObj}, optional: param1...n) {% %}`
     * Executes a patch request
     * Data Object takes optional keys which correspond to Commandtax custom data: `post, query, path, header`
     * Returns the result
     * Supports async, callbacks
-* `post(required: "\<someCommand\>", optional: {dataObj}, optional: param1...n) {% %}
+* `post(required: "\<someCommand\>", optional: {dataObj}, optional: param1...n) {% %}`
     * Executes a post request
     * Data Object takes optional keys which correspond to Commandtax custom data: `post, query, path, header`
     * Returns the result
     * Supports async, callbacks
-* `delete(required: "\<someCommand\>", optional: {dataObj}, optional: param1...n) {% %}
+* `delete(required: "\<someCommand\>", optional: {dataObj}, optional: param1...n) {% %}`
     * Executes a delete request
     * Data Object takes optional keys which correspond to Commandtax custom data: `post, query, path, header`
     * Returns the result
     * Supports async, callbacks
-* `script(required: "\<someScriptFile\>", optional: param1...n) {% %}
+* `script(required: "\<someScriptFile\>", optional: param1...n) {% %}`
     * Executes a script
     * Returns the result
     * Supports async, callbacks
@@ -184,84 +184,84 @@ Scriptax is an API first automation language. Scriptax is not a general purpose 
         * path - json - An object detailing any path parameters
         * driver - The driver to use for this request
         * strict - default: true - Whether or not the entire script should fail if the requests returns a status code >299 or <200
-* `async
+* `async`
     * Add this keyword in front of any keyword which supports async to run the operation in a new thread
     * `async get("http://placeholderjson.com/users", {}) {% %}`
     * `someVar = async get("http://placeholderjson.com/users", {}) {% %}`
     * Callbacks execute prior to storing the result of the request into a variable
     * Variable will be initialized with a new thread instance and once the thread completes it will be replaced with the result as returned via the callback
-* `await \<someOptionalVar\>;
+* `await \<someOptionalVar\>;`
     * When a variable is specified, wait until the async execution specified by that variable completes.
     * When no variable is specified, wait until all of the open threads in the current script complete before moving on
 * {% %};
     * Callback block
     * The contents will be executed in an isolated scope, usually only having access to a `results` variable
-* `str()
+* `str()`
     * Cast to string
-* `int()
+* `int()`
     * Cast to rounded integer
-* `dec()
+* `dec()`
     * Cast to float
-* `bool()
+* `bool()`
     * Cast to true/false
-* `list()
+* `list()`
     * Cast to list
     * Only works on strings
-* `dict()
+* `dict()`
     * Cast to dictionary
     * Works on lists, strings, ints, decs
-* `\#
+* `\#`
     * Return the length of the variable
     * Works on strings, lists, dictionaries (Only returns the top level count)
-* `del \<someVar\>
+* `del \<someVar\>`
     * Remove someVar from the current scope
-* `return \<optionalVar\>
+* `return \<optionalVar\>`
     * Exits the script immediately and returns some expression
-* `options
+* `options`
     * Used to specify options for the script
-* `sig param1Required, thisParam=isOptional, thisOneisRequired;
+* `sig param1Required, thisParam=isOptional, thisOneisRequired;`
     * Specify parameters for a script
-* `if (condition) {}
+* `if (condition) {}`
     * IF statement
-* `while (condition) {}
+* `while (condition) {}`
     * While loop
-* `for \<someVar\> in \<existingVar\> {}
+* `for \<someVar\> in \<existingVar\> {}`
     * Loop through each item in a list in order
-* `for \<someVar\> in \<someNumber\> {}
+* `for \<someVar\> in \<someNumber\> {}`
     * Loop from 1 to someNumber and set someVar to the current iteration
-* `each \<someList\> {% %};
+* `each \<someList\> {% %};`
     * Loop through a list setting `results` to the current item and executing instructions in an isolated callback
-* `\<someVar\> = \<someValue\>
+* `\<someVar\> = \<someValue\>`
     * Sets a variable
     * Supports expressions, strings, numbers, booleans, dictionaries, lists, and commandtax responses
-* `"this is a string {{ someVar }}"
+* `"this is a string {{ someVar }}"`
     * Injects the contents of a variable
     * Fancy stuff is possible such as: set newVar = ct("{{someVar}}")
-* `{{ r: someResponse }}
+* `{{ r: someResponse }}`
     * Injects the response of some request
-* `import ct("some commandtax")
+* `import ct("some commandtax")`
     * Executes a command and imports the response to the current scope
-* `export ct("some commandtax"), export someVar 
+* `export ct("some commandtax"), export someVar` 
     * Imports the values to the current scope and exports them to allow a parent scope to access these values 
-* `auth \<someAuthObject\>
+* `auth \<someAuthObject\>`
     * Sets the default auth object for the current executing script
-* `login(username={{someUser}}, password={{somePass}}, token={{someToken}}, driver={{someDriver}}, extra={{someJSONObj}})
+* `login(username={{someUser}}, password={{somePass}}, token={{someToken}}, driver={{someDriver}}, extra={{someJSONObj}})`
     * Each parameter in login is optional. The required parameters is defined via the driver to be used by the login command. This driver is either the default script driver or the driver specified in the login parameters.
     * Returns an auth object
     * Can be used directly with `auth` such as: `auth login(username=test, password=test123);`
 * `endpoint(someEndpointName@someDriver)`
     * Using the drivers `getCatalog` method, this will return the the endpoint found in the catalog of the specified driver
     * This can be used directly with `url` such as: `url endpoint('keystone@openstack')`
-* `name \<someName\>
+* `name \<someName\>`
     * Sets the reference name of the script.
     * Supports strings and expressions
-* `url \<someUrl\>
+* `url \<someUrl\>`
     * Sets the current working URL to be used in further commandtax
-* `log("log some output to the console & log file")
+* `log("log some output to the console & log file")`
     * Supports expressions
-* `// some comment
+* `// some comment`
     * Inline comment
-* `/* some comment spanning multiple lines */
+* `/* some comment spanning multiple lines */`
     * Block comment
 
 #### Scriptax Gotchas/Tips/Tricks
