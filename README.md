@@ -14,38 +14,42 @@ A more winded (and more detailed!) description called **Why use Apitax** is at t
 
 ## Builds and Installation
 
+### StarterPack
+I highly recommend you use the starter pack to get Apitax up and running. It provides you with a templated repository of files which you can change to better suit your application. 
+
+The Apitax StarterPack can be found here: https://github.com/Apitax/StarterPack
+
+StarterPack Benefits and Features:
+* A complete set of working files to bring up Apitax with a single command
+* Integrates Apitax/Core, Apitax/Drivers, Apitax/Scripts, and Apitax/CLI out of the box to give you a great experience
+* Provides options to launch Apitax/Dashboard as well
+* Completely customizable as if you were trying to use the raw Apitax code yourself
+* Every service launches in Docker in one swift motion
+
+##### Notes:
+* StarterPack utilizes Pip and Docker to build the application. For this reason, an internet connection is required on the machine you use to build these images.
+
 ### Pip
 
 Apitax on PyPi: https://pypi.org/project/apitax/
 
-Using pip, you can bring in Apitax to your project. However, there are a couple of other commands you need to run to ensure Apitax is ready to go.
-
-* First, install Apitax using pip: `pip install apitax`
-* Then, create a small Script that calls Apitax with some predefined parameters.
-```python3
-[setup_apitax.py]
-
-from apitax import Apitax
-
-def main():
-    apitax = Apitax()
-    apitax.apitax(["--build-only", "--debug"])
-
-if __name__ == '__main__':
-    main()
-```
-* Execute that script: `python setup_apitax.py`
-    * This can take several minutes to complete. Please be patient.
+Using pip, you can bring in Apitax to your project.
 
 ### Docker
-You can use the provided Docker file and requirements file to quickly bake your project into a container with Apitax. To do this, follow these steps.
-* Create a new folder, I'm going to call it `myimage`, but you can call it whatever you like.
-* Inside of the `myimage` folder, create a sub-folder called `app`. 
-    * Place all of your application and project files inside of the `app` sub-folder
-* Back inside of the `myimage` folder, copy in the `Dockerfile` and `requirements.txt` file found inside of the docker directory in this repo.
-    * Feel free to modify the `Dockerfile` and `requirements.txt` to suit your projects needs.
-* You should now have a folder called `myimage` which contains `Dockerfile`, `requirements.txt`, and a sub-folder called `app` containing all of your application/project code.
-* Ensure you have navigated to the `myimage` directory. This should be the directory where you execute the next few commands from.
+Docker is the recommended way to deploy Apitax. Please see the StarterPack for examples on how this can be achieved. While building Apitax yourself is possible, it is only recommended to do so if you are developing Apitax.
+
+Warning: Apitax/Core is a base Apitax image. It is not meant to be deployed by itself, and must be used as a base for an application image which uses Apitax. Please see the StarterPack for more details. 
+
+For the programmers out there: Think of the Apitax image as an `abstract class` in a programming language, and it is up to you to build the class that inheirits Apitax. 
+
+#### DockerHub
+* Apitax is available as an image on DockerHub: https://hub.docker.com/r/shawnclake/apitax/
+
+#### Build yourself using Dockerfile
+You can use the provided Docker file to quickly build an Apitax image. However, this image will not function correctly as it will be missing `config.txt`, `project.py`, and will have no drivers. Please see the StarterPack for more details on how this should all be included.
+
+Steps:
+* Clone the Apitax repository
 * Build the image: `docker build --no-cache -t my-amazing-image .`
 * Run the newly created image: `docker run -d -p 5080:5080 my-amazing-image`
     * This will run the container in the background, to run the container in the foreground remove the `-d` flag.
@@ -60,7 +64,7 @@ You can use the provided Docker file and requirements file to quickly bake your 
     * Major and minor releases will also feature a dependency build, however bug and security releases will not feature a dependency version
     * It is best practice to always download the no-deps version and ensure you download the dependencies yourself
 
-### Packaging Instructions
+### Pip Packaging Instructions
 * Use either Powershell or Bash
 * Building the package: `python setup.py sdist bdist_wheel`
 * Upload the package to Pypi: `twine upload dist/* -r pypi`
@@ -96,6 +100,7 @@ cp $grammardir/src/$1 $apitaxdir/src
 ## Documentation and Usage
 
 ### Commandtax - Data Gathering, Manipulating, Usage
+Commandtax is an efficient and fluent command language for Rest API's. Think of it as a better curl supporting better logging, better debugging, and more sensible flags.
 
 #### Existing
 * script \<pathToSomeScript\>
@@ -117,121 +122,158 @@ cp $grammardir/src/$1 $apitaxdir/src
         * --data-query : (json string) Any query parameters  ie. Endpoint.com/something?this=queryparam
         * --data-path : (json string) Any url path variables ie. Endpoint.com/users/{path_var}/show
 
-
 #### Coming Soon
 * shell \<someCommand\>
     * Runs the command in the shell and returns the response from the shell		
+* An optional abreviated syntax for each command flag. These examples are subject to change
+    * --get -> -g
+    * --post -> -p
+    * --put -> -q
+    * --patch -> -w
+    * --delete -> -e
+    * --url -> -u
+    * --debug -> -d
+    * --sensitive -> -s
+    * --data-post -> -z
+    * --data-query -> -x
+    * --data-path -> -c
     
 
 ### Scriptax - Control Flow, Scoping, and Automation
+Scriptax is an API first automation language. Scriptax is not a general purpose language, instead it exists as a language tailored to optimizing automation in an API based environment.
 
-#### Existing keywords
-* ct("\<someCommand\>") {% %}
+#### Language
+* `ct(required: "\<someCommand\>") {% %}`
     * Commandtax execution
     * A command is executed during the parsing of the line and its response is returned
     * Supports async, callbacks
-* get("\<someCommand\>", {dataObj}, param1...n) {% %}
+* `get(required: "\<someCommand\>", optional: {dataObj}, optional: param1...n) {% %}
     * Executes a get request
     * Data Object takes optional keys which correspond to Commandtax custom data: `post, query, path, header`
     * Returns the result
     * Supports async, callbacks
-* put("\<someCommand\>", {dataObj}, param1...n) {% %}
+* `put(required: "\<someCommand\>", optional: {dataObj}, optional: param1...n) {% %}
     * Executes a put request
     * Data Object takes optional keys which correspond to Commandtax custom data: `post, query, path, header`
     * Returns the result
     * Supports async, callbacks
-* patch("\<someCommand\>", {dataObj}, param1...n) {% %}
+* `patch(required: "\<someCommand\>", optional: {dataObj}, optional: param1...n) {% %}
     * Executes a patch request
     * Data Object takes optional keys which correspond to Commandtax custom data: `post, query, path, header`
     * Returns the result
     * Supports async, callbacks
-* post("\<someCommand\>", {dataObj}, param1...n) {% %}
+* `post(required: "\<someCommand\>", optional: {dataObj}, optional: param1...n) {% %}
     * Executes a post request
     * Data Object takes optional keys which correspond to Commandtax custom data: `post, query, path, header`
     * Returns the result
     * Supports async, callbacks
-* delete("\<someCommand\>", {dataObj}, param1...n) {% %}
+* `delete(required: "\<someCommand\>", optional: {dataObj}, optional: param1...n) {% %}
     * Executes a delete request
     * Data Object takes optional keys which correspond to Commandtax custom data: `post, query, path, header`
     * Returns the result
     * Supports async, callbacks
-* script("\<someScriptFile\>", {emptyObject}, param1...n) {% %}
+* `script(required: "\<someScriptFile\>", optional: param1...n) {% %}
     * Executes a script
     * Returns the result
     * Supports async, callbacks
-* async
-    * Add this keyword in front of any other keyword which supports async to run the operation in a new thread
-    * async get("http://placeholderjson.com/users", {}) {% %}
-    * someVar = async get("http://placeholderjson.com/users", {}) {% %}
-    * Callbacks execute prior to storing into variable
-    * Variable will be initialized with a thread instance and once the thread completes it will be replaced with the result as returned via the callback
-* await \<someOptionalVar\>;
+* {dataObj}
+    * JSON object which includes optional arguments for the command such as:
+        * auth - The set of credentials to use for this request
+        * post - json - An object detailing any post parameters
+        * query - json - An object detailing any query parameters
+        * path - json - An object detailing any path parameters
+        * driver - The driver to use for this request
+        * strict - default: true - Whether or not the entire script should fail if the requests returns a status code >299 or <200
+* `async
+    * Add this keyword in front of any keyword which supports async to run the operation in a new thread
+    * `async get("http://placeholderjson.com/users", {}) {% %}`
+    * `someVar = async get("http://placeholderjson.com/users", {}) {% %}`
+    * Callbacks execute prior to storing the result of the request into a variable
+    * Variable will be initialized with a new thread instance and once the thread completes it will be replaced with the result as returned via the callback
+* `await \<someOptionalVar\>;
     * When a variable is specified, wait until the async execution specified by that variable completes.
     * When no variable is specified, wait until all of the open threads in the current script complete before moving on
 * {% %};
     * Callback block
     * The contents will be executed in an isolated scope, usually only having access to a `results` variable
-* str()
+* `str()
     * Cast to string
-* int()
+* `int()
     * Cast to rounded integer
-* dec()
+* `dec()
     * Cast to float
-* bool()
+* `bool()
     * Cast to true/false
-* list()
+* `list()
     * Cast to list
     * Only works on strings
-* dict()
+* `dict()
     * Cast to dictionary
     * Works on lists, strings, ints, decs
-* \#
+* `\#
     * Return the length of the variable
     * Works on strings, lists, dictionaries (Only returns the top level count)
-* del \<someVar\>
+* `del \<someVar\>
     * Remove someVar from the current scope
-* return \<optionalVar\>
+* `return \<optionalVar\>
     * Exits the script immediately and returns some expression
-* options
+* `options
     * Used to specify options for the script
-* sig param1Required, thisParam=isOptional, thisOneisRequired;
+* `sig param1Required, thisParam=isOptional, thisOneisRequired;
     * Specify parameters for a script
-* if (condition) {}
+* `if (condition) {}
     * IF statement
-* while (condition) {}
+* `while (condition) {}
     * While loop
-* for \<someVar\> in \<existingVar\> {}
+* `for \<someVar\> in \<existingVar\> {}
     * Loop through each item in a list in order
-* for \<someVar\> in \<someNumber\> {}
+* `for \<someVar\> in \<someNumber\> {}
     * Loop from 1 to someNumber and set someVar to the current iteration
-* each \<someList\> {% %};
+* `each \<someList\> {% %};
     * Loop through a list setting `results` to the current item and executing instructions in an isolated callback
-* \<someVar\> = \<someValue\>
+* `\<someVar\> = \<someValue\>
     * Sets a variable
     * Supports expressions, strings, numbers, booleans, dictionaries, lists, and commandtax responses
-* "this is a string {{ someVar }}"
+* `"this is a string {{ someVar }}"
     * Injects the contents of a variable
     * Fancy stuff is possible such as: set newVar = ct("{{someVar}}")
-* {{ r: someResponse }}
+* `{{ r: someResponse }}
     * Injects the response of some request
-* import ct("some commandtax")
+* `import ct("some commandtax")
     * Executes a command and imports the response to the current scope
-* export ct("some commandtax"), export someVar 
+* `export ct("some commandtax"), export someVar 
     * Imports the values to the current scope and exports them to allow a parent scope to access these values 
-* name \<someName\>
+* `auth \<someAuthObject\>
+    * Sets the default auth object for the current executing script
+* `login(username={{someUser}}, password={{somePass}}, token={{someToken}}, driver={{someDriver}}, extra={{someJSONObj}})
+    * Each parameter in login is optional. The required parameters is defined via the driver to be used by the login command. This driver is either the default script driver or the driver specified in the login parameters.
+    * Returns an auth object
+    * Can be used directly with `auth` such as: `auth login(username=test, password=test123);`
+* `endpoint(someEndpointName@someDriver)`
+    * Using the drivers `getCatalog` method, this will return the the endpoint found in the catalog of the specified driver
+    * This can be used directly with `url` such as: `url endpoint('keystone@openstack')`
+* `name \<someName\>
     * Sets the reference name of the script.
     * Supports strings and expressions
-* url \<someUrl\>
+* `url \<someUrl\>
     * Sets the current working URL to be used in further commandtax
-* log("log some output to the console & log file")
+* `log("log some output to the console & log file")
     * Supports expressions
-* // some comment
+* `// some comment
     * Inline comment
-* /* some comment spanning multiple lines */
+* `/* some comment spanning multiple lines */
     * Block comment
 
+#### Scriptax Gotchas/Tips/Tricks
+* Accessing parameters as defined by `sig` should be done like so: `param.firstParam` where `firstParam` is the name of the parameter
+* For best compatbility with Apitax/Dashboard and Apitax/CLI, please start each Scriptax file with a `sig` line if nessecary. 
+* You can use arrays via dot notation
+    * set someVar.1 = num1
+    * set someVar.2 = num2
+    * set someVar.{{counter}} = num3
+    * When doing this, the first usage of a variable must either be someVar = "{}" or an index as part of that object. Failure to do this will result in errors being thrown.
+
 #### Best Practices
-* Start each script with an options line immediately followed by a name line. 
 * End each script with `await;` to ensure all async requests are completed before it returns to the parent script.
     * Ending with `await;` followed by `return \<someVar\>;` is also acceptable
 * Delete unused variables from the root scope when they are no longer needed `del \<someVar\>` 
@@ -239,18 +281,11 @@ cp $grammardir/src/$1 $apitaxdir/src
 * Keep the root scope as clean as possible
 * Scripts should be small, containerized pieces of code that strictly follow SRP.
      * Think of Scripts as lego blocks, eventually you can put a bunch of them together to build something really cool
-* Scriptax is a fairly flexible, forgiving, and powerful language
+* Scriptax is a flexible, forgiving, and powerful language
     * Play around to see what you can and cannot do. There are too many edge cases to list explicitly.
 
 #### Coming Soon
 * A time method
-
-#### Tidbits
-* You can use arrays via dot notation
-    * set someVar.1 = num1
-    * set someVar.2 = num2
-    * set someVar.{{counter}} = num3
-    * When doing this, the first usage of a variable must either be someVar = "{}" or an index as part of that object. Failure to do this will result in errors being thrown.
 
 ### Commandline Interface (CLI)
 * You can activate Apitax from the CLI directly without needing a wrapper package
@@ -266,11 +301,10 @@ cp $grammardir/src/$1 $apitaxdir/src
 	
 ### Modes
 * CLI : Make a request from the command line
-* WEB : Start the web server interface
-* Grammar Test : Run a test of the parsing and grammars
+* API : Start the api server
 	
 ### Configuration
-* An example configuration file is stored in the repo root
+* An example configuration file is stored in the root of the repo
 
 ### Supported Authentication
 * Authentication is prebuilt for HTTP Basic and Token based authentication
@@ -280,16 +314,8 @@ cp $grammardir/src/$1 $apitaxdir/src
 ### Drivers and Plugins
 ** This has been redone and requires updated configuration **
 * Drivers and plugins are used to extend the functionality of Apitax to an arbitrary API
-* While dynamically injecting drivers and plugins is on the todo list, for now all plugins must go into the apitax/drivers/plugins directory
-* Each driver requires at least a core plugin file
-    * This file describes any custom parameters with regards to authentication, endpoints, and the requirements of the specific API the driver is built for
-* Optionally, a driver can also include commandtax plugins which are used to specify shortcut commands
-    * To do this, a core commandtax plugin file is required as well as a commandtax plugins directory. The core commandtax plugin file must contain the suffic `Commands`
-        * Core commandtax plugins file: `apitax/drivers/plugins/commandtax/CoreFileCommands.py`
-        * Core commandtax plugins directory: `apitax/drivers/plugins/commandtax/<theNameofTheDriver>/`
-    * Inside of this new plugins directory, you can create shortcut files to route specialized commands. You can see examples of this in the apitax source code with regards to the ApitaxTests driver and plugin files
-    * Shortcut commands are really just scripts which are aliased to a command
-	
+* Drivers must be dynammically added to the application via the `project.py` file. Please see Apitax/StarterPack for an example of how this can be done.
+
 ### Examples of Apitax in Action:
 
 #### Commandtax Examples
