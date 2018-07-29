@@ -1,2 +1,2 @@
 from .module import *
-__version__ = '2.2.8'
+__version__ = '2.2.10'

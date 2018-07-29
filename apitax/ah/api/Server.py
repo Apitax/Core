@@ -16,6 +16,10 @@ app.add_api('swagger.yaml', arguments={'title': 'Apitax'})
 app.app.config['JWT_SECRET_KEY'] = State.config.get("secret") # More config here: http://flask-jwt-extended.readthedocs.io/en/latest/options.html#configuration-options
 jwt = JWTManager(app.app)
 
+if(State.config.get('allow-cors')):
+    from flask_cors import CORS
+    CORS(app.app)
+
 @jwt.user_claims_loader
 def add_claims_to_access_token(identity):
     return {

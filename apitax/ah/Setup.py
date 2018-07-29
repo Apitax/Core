@@ -16,7 +16,6 @@ from apitax.ah.Options import Options
 from apitax.ah.LoadedDrivers import LoadedDrivers
 from apitax.utilities.Files import getRoot
 
-
 from apitax.logs.Log import Log
 from apitax.logs.BufferedLog import BufferedLog
 from apitax.logs.StandardLog import StandardLog
@@ -49,7 +48,7 @@ class Setup:
         self.build = True
 
         self.doLog = True
-        if(State.paths['log'] != ""):
+        if (State.paths['log'] != ""):
             self.logPath = State.paths['log']
         else:
             self.logPath = '/logs/apitax.log'
@@ -58,7 +57,7 @@ class Setup:
         self.logHumanReadable = False
 
         # print(getRootPath('/config.txt'))
-        if(State.paths['config'] != ""):
+        if (State.paths['config'] != ""):
             configFile = State.paths['config']
         else:
             configFile = getRoot('/config.txt')
@@ -87,10 +86,16 @@ class Setup:
         if (self.logPath[:1] != '/'):
             self.logPath = '/' + self.logPath
 
-        #self.logPath = getRootPath(self.logPath)
+        # self.logPath = getRootPath(self.logPath)
 
-        self.log = Log(StandardLog(), logFile=self.logPath, doLog=self.doLog, logColorize=self.logColorize, logPrefixes=self.logPrefixes,
-                  logHumanReadable=self.logHumanReadable)
+        if (self.config.has('log-buffered') and self.config.get('log-buffered')):
+            logDriver = BufferedLog()
+        else:
+            logDriver = StandardLog()
+
+        self.log = Log(logDriver, logFile=self.logPath, doLog=self.doLog, logColorize=self.logColorize,
+                       logPrefixes=self.logPrefixes,
+                       logHumanReadable=self.logHumanReadable)
 
         self.log.log('')
         self.log.log('')
@@ -166,13 +171,13 @@ class Setup:
         State.config = self.config
         State.options = self.options
         State.log = self.log
-        if(State.paths['log'] == ""):
+        if (State.paths['log'] == ""):
             State.paths['log'] = self.logPath
-        if(State.paths['root'] == ""):
+        if (State.paths['root'] == ""):
             State.paths['root'] = getRoot()
-        if(State.paths['apitax'] == ""):    
+        if (State.paths['apitax'] == ""):
             State.paths['apitax'] = str(Path(os.path.dirname(os.path.abspath(inspect.stack()[0][1]))).resolve())
-        if(State.paths['config'] == ""):
+        if (State.paths['config'] == ""):
             State.paths['config'] = configFile
 
         if (self.options.debug):
@@ -180,7 +185,7 @@ class Setup:
             self.log.log('')
 
         Drivers.initialize()
-        
+
     def load(self):
         drivers = self.config.getAsList('drivers')
         for driver in drivers:
@@ -196,5 +201,3 @@ class Setup:
 
         if (self.password == '' and self.config.has('default-password')):
             self.password = LoadedDrivers.getDefaultBaseDriver().getDefaultPassword()  # config.get('default-password')
-
-

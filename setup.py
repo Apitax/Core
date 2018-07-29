@@ -28,7 +28,7 @@ with open("README.md", "r") as fh:
 setup(
   name = 'Apitax',
   packages = find_packages(), # this must be the same as the name above
-  version = '2.2.8',
+  version = '2.2.10',
   description = 'Apitax combines the power of Scriptax and Commandtax into a quick and easy to use Python package to facillitate powerful Restful API Request Scripting',
   long_description=long_description,
   long_description_content_type="text/markdown",
@@ -54,6 +54,7 @@ setup(
     'flask-jwt-extended',
     'python_dateutil == 2.6.0',
     'typing == 3.5.2.2',
+    'flask-cors',
   ],
   #cmdclass={
   #  'develop': PostDevelopCommand,

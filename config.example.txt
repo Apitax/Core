@@ -9,8 +9,10 @@ log-file = logs/apitax.log
 log-colorize = true
 log-human-readable = false
 log-prefixes = true
+log-buffered = true
 default-mode = api
 secret = CHANGE_THIS_TO_A_SECRET_STRING
+allow-cors = true
 
 [DefaultGitDriver]
 git-repo-clone-url = https://github.com/<MyUsername>/<MyRepoName>.git
