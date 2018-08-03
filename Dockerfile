@@ -16,7 +16,7 @@ WORKDIR /app
 RUN pip install wheel setuptools
 
 # Install Apitax
-RUN pip install apitax==2.2.10 --no-cache
+RUN pip install apitax==2.2.16 --no-cache
 
 RUN cd /app && touch __init__.py
 RUN cd /app && touch project.py

@@ -185,6 +185,8 @@ class Setup:
             self.log.log('')
 
         Drivers.initialize()
+        
+        self.log.getLoggerDriver().outputLog()
 
     def load(self):
         drivers = self.config.getAsList('drivers')
@@ -201,3 +203,5 @@ class Setup:
 
         if (self.password == '' and self.config.has('default-password')):
             self.password = LoadedDrivers.getDefaultBaseDriver().getDefaultPassword()  # config.get('default-password')
+
+        self.log.getLoggerDriver().outputLog()

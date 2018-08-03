@@ -22,12 +22,12 @@ class AuthRequest(Custom):
         header = HeaderBuilder()
         header.build(self.driver.getContentTypeJSON())
 
-        if (not self.driver.isCredentialsPosted):
+        if (not self.driver.isCredentialsPosted()):
             header.build(self.driver.getPasswordAuthHeader(credentials))
 
         Custom.__init__(self, config, header, None, None, Options(debug=options.debug, sensitive=True))
 
-        if (self.driver.isCredentialsPosted):
+        if (self.driver.isCredentialsPosted()):
             self.setPostData(self.driver.getPasswordAuthData(credentials))
 
         if (self.options.debug):

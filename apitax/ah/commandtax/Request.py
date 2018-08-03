@@ -8,7 +8,7 @@ import requests
 # Application import
 from apitax.logs.Log import Log
 from apitax.ah.Options import Options
-
+from apitax.utilities.Json import isJson,isJsonable
 
 def serialize(obj):
     return obj.serialize()
@@ -137,30 +137,76 @@ class Request:
 
     def post(self):
         self.injectPathData()
-        self.request = requests.post(self.url, data=json.dumps(self.postData), headers=self.headers,
+        data = self.postData
+        if(len(data) < 1):
+            data = ''
+
+        if((not isinstance(data, str)) and isJsonable(data)):
+            data = json.dumps(data)
+
+        if(len(data) < 1):
+            data = None
+            
+        self.request = requests.post(self.url, data=data, headers=self.headers,
                                      params=self.paramData)
         self.logRequest()
 
     def get(self):
         self.injectPathData()
-        self.request = requests.get(self.url, data=json.dumps(self.postData), headers=self.headers,
+        data = self.postData
+        if(len(data) < 1):
+            data = ''
+
+        if((not isinstance(data, str)) and isJsonable(data)):
+            data = json.dumps(data)
+
+        if(len(data) < 1):
+            data = None
+        self.request = requests.get(self.url, data=data, headers=self.headers,
                                     params=self.paramData)
         self.logRequest()
 
     def put(self):
         self.injectPathData()
-        self.request = requests.put(self.url, data=json.dumps(self.postData), headers=self.headers,
+        data = self.postData
+        if(len(data) < 1):
+            data = ''
+
+        if((not isinstance(data, str)) and isJsonable(data)):
+            data = json.dumps(data)
+
+        if(len(data) < 1):
+            data = None
+        self.request = requests.put(self.url, data=data, headers=self.headers,
                                     params=self.paramData)
         self.logRequest()
 
     def patch(self):
         self.injectPathData()
-        self.request = requests.patch(self.url, data=json.dumps(self.postData), headers=self.headers,
+        data = self.postData
+        if(len(data) < 1):
+            data = ''
+
+        if((not isinstance(data, str)) and isJsonable(data)):
+            data = json.dumps(data)
+
+        if(len(data) < 1):
+            data = None
+        self.request = requests.patch(self.url, data=data, headers=self.headers,
                                       params=self.paramData)
         self.logRequest()
 
     def delete(self):
         self.injectPathData()
-        self.request = requests.delete(self.url, data=json.dumps(self.postData), headers=self.headers,
+        data = self.postData
+        if(len(data) < 1):
+            data = ''
+
+        if((not isinstance(data, str)) and isJsonable(data)):
+            data = json.dumps(data)
+
+        if(len(data) < 1):
+            data = None
+        self.request = requests.delete(self.url, data=data, headers=self.headers,
                                        params=self.paramData)
         self.logRequest()

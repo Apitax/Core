@@ -9,6 +9,7 @@ import click
 from apitax.ah.commandtax.Request import Request
 from apitax.ah.HeaderBuilder import HeaderBuilder
 from apitax.ah.Options import Options
+from apitax.utilities.Json import isJson
 
 
 # Handles custom commands
@@ -69,8 +70,11 @@ class Custom(Request):
 
         self.setUrl(url)
         # print(command)
-        if (postData != ''):
-            self.setPostData(json.loads(str(postData)))
+        if (postData != ''): 
+            if(isJson(str(postData))): 
+                self.setPostData(json.loads(str(postData)))
+            else:
+                self.setPostData(str(postData))
         if (paramData != ''):
             self.setParamData(json.loads(str(paramData)))
         if (pathData != ''):

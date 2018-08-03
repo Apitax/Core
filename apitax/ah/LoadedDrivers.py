@@ -16,15 +16,14 @@ class LoadedDrivers:
 
         if (name + 'Driver' not in Drivers.drivers):
             Log().error("Driver '" + name + 'Driver' + "' does not exist or has not been imported/added.")
-            return
+        else:
+            LoadedDrivers.drivers[name + 'Driver'] = Drivers.get(name + 'Driver')
 
-        LoadedDrivers.drivers[name + 'Driver'] = Drivers.get(name + 'Driver')
+            if (setDefaultDrivers):
+                LoadedDrivers.default['base'] = Drivers.get(name + 'Driver')
 
-        if (setDefaultDrivers):
-            LoadedDrivers.default['base'] = Drivers.get(name + 'Driver')
-
-        Log().log("> Driver '" + name + 'Driver' + "' is loaded.")
-        Log().log('')
+            Log().log("> Driver '" + name + 'Driver' + "' is loaded.")
+            Log().log('')
 
         if (name + 'Commands' in Drivers.drivers):
             LoadedDrivers.drivers[name + 'Commands'] = Drivers.get(name + 'Commands')
