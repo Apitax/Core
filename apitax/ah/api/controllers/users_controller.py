@@ -12,11 +12,11 @@ from apitax.ah.api.models.response import Response  # noqa: E501
 from apitax.ah.api.models.user_auth import UserAuth  # noqa: E501
 from apitax.ah.api import util
 
-from apitax.ah.State import State
-from apitax.ah.LoadedDrivers import LoadedDrivers
-from apitax.ah.Credentials import Credentials
-from apitax.ah.Options import Options
-from apitax.ah.Connector import Connector
+from apitax.ah.models.State import State
+from apitax.ah.flow.LoadedDrivers import LoadedDrivers
+from apitax.ah.models.Credentials import Credentials
+from apitax.ah.models.Options import Options
+from apitax.ah.flow.Connector import Connector
 from apitax.ah.api.utilities.Mappers import mapUserAuthToCredentials
 
 from apitax.ah.api.utilities.Roles import hasAccess as roleAccess
@@ -40,7 +40,7 @@ def command(execute=None):  # noqa: E501
     if connexion.request.is_json:
         execute = Execute.from_dict(connexion.request.get_json())  # noqa: E501
 
-    if(not hasAccess()):
+    if (not hasAccess()):
         return redirectUnauthorized()
 
     try:
@@ -52,23 +52,30 @@ def command(execute=None):  # noqa: E501
             parameters = execute.command.parameters
 
         credentials = Credentials()
-        options = Options(debug=execute.command.options['debug'], sensitive=execute.command.options['sensitive'])
+
+        options = Options()
+
+        if(execute.command.options):
+            if ('debug' in execute.command.options):
+                options.debug = execute.command.options['debug']
+
+            if ('sensitive' in execute.command.options):
+                options.sensitive = execute.command.options['sensitive']
 
         if (execute.auth):
             credentials = mapUserAuthToCredentials(execute.auth, credentials)
-
-        if (not execute.auth.api_token):
-            options.sensitive = True
+            if (not execute.auth.api_token):
+                options.sensitive = True
 
         connector = Connector(options=options, credentials=credentials, command=execute.command.command,
                               parameters=parameters)
 
         commandHandler = connector.execute()
 
-        response = Response(status=commandHandler.getRequest().getResponseStatusCode(),
-                            body=json.loads(commandHandler.getRequest().getResponseBody()))
+        response = Response(status=commandHandler.response.getResponseStatusCode(),
+                            body=commandHandler.response.getResponseBody())
 
-        if (execute.command.options['debug']):
+        if(options.debug):
             response.log = connector.logBuffer
 
         return response
@@ -82,7 +89,7 @@ def command(execute=None):  # noqa: E501
             return ErrorResponse(status=500, message="")
 
 
-#@jwt_required
+# @jwt_required
 def display_dashboard():  # noqa: E501
     """Displays the user dashboard page
 
@@ -92,8 +99,8 @@ def display_dashboard():  # noqa: E501
     :rtype: None
     """
 
- #   if(not hasAccess()):
-  #      return redirectUnauthorized()
+    #   if(not hasAccess()):
+    #      return redirectUnauthorized()
 
     return flask.send_from_directory('dashboard/src/pages', 'user_dashboard.html')
 
@@ -112,12 +119,12 @@ def endpoint_catalog(catalog=None):  # noqa: E501
     if connexion.request.is_json:
         catalog = UserAuth.from_dict(connexion.request.get_json())  # noqa: E501
 
-    if(not hasAccess()):
+    if (not hasAccess()):
         return redirectUnauthorized()
 
-    driver = LoadedDrivers.getDefaultBaseDriver()
+    driver = LoadedDrivers.getDefaultDriver()
     auth = None
-    if(catalog):
+    if (catalog):
         auth = catalog
     return Response(status=200, body=driver.getCatalog(auth))
 
@@ -134,10 +141,10 @@ def get_script(name=None):  # noqa: E501
     :rtype: Response
     """
 
-    if(not hasAccess()):
+    if (not hasAccess()):
         return redirectUnauthorized()
 
-    driver = LoadedDrivers.getDefaultBaseDriver()
+    driver = LoadedDrivers.getDefaultDriver()
     return Response(status=200, body=driver.readScript(name))
 
 
@@ -150,15 +157,15 @@ def script_catalog():  # noqa: E501
 
     :rtype: Response
     """
-    if(not hasAccess()):
+    if (not hasAccess()):
         return redirectUnauthorized()
 
-    driver = LoadedDrivers.getDefaultBaseDriver()
+    driver = LoadedDrivers.getDefaultDriver()
     return Response(status=200, body=driver.getScriptsCatalog())
 
 
 def hasAccess():
-    if (roleAccess(get_jwt_identity(), 'developer')):
+    if (roleAccess(get_jwt_identity(), 'user')):
         return True
     return False
 

@@ -5,7 +5,7 @@ import connexion
 from apitax.ah.api import encoder
 from flask_jwt_extended import JWTManager
 
-from apitax.ah.State import State
+from apitax.ah.models.State import State
 
 from flask import redirect
 

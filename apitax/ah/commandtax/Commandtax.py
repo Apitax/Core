@@ -2,54 +2,71 @@
 import shlex
 
 # Application import
-from apitax.ah.commandtax.commands.Script import Script
-from apitax.ah.commandtax.commands.Custom import Custom
-from apitax.ah.LoadedDrivers import LoadedDrivers
-from apitax.ah.Credentials import Credentials
-from apitax.ah.Options import Options
+from apitax.ah.flow.LoadedDrivers import LoadedDrivers
+from apitax.ah.flow.requests.ApitaxRequest import ApitaxRequest
+from apitax.ah.flow.responses.ApitaxResponse import ApitaxResponse
+from apitax.ah.models.Options import Options
+from apitax.ah.models.State import State
+from apitax.ah.models.Command import Command
 
 
 # Command is used to distribute the workload amoung a heirarchy of possible handlers
 # Command is the 'brain' of the application
 class Commandtax:
-    def __init__(self, header, command, config, options=Options(), parameters={}, auth=Credentials()):
+    def __init__(self, request: ApitaxRequest = ApitaxRequest(), command='', options: Options = Options(),
+                 parameters={}):
 
-        if (type(command) is not list):
-            command = shlex.split(command.strip())
-        if (len(command) < 1):
-            return
-        self.request = None
+        self.config = State.config
+        self.request = request
+        self.command = command
+        self.parameters = parameters
+        self.options = options
 
-        if ('--debug' in command):
-            options.debug = True
-        if ('--sensitive' in command):
-            options.sensitive = True
-        if ('--driver' in command):
-            options.driver = command[command.index('--driver') + 1]
+        self.response: ApitaxResponse = None
 
-        if (command[0] == 'script'):
-            self.request = Script(config, header, auth, parameters, options)
-        elif (command[0] == 'custom'):
-            self.request = Custom(config, header, auth, parameters, options)
-        else:
-            if (options.driver):
-                customCommands = LoadedDrivers.getCommandsDriver(options.driver)
-            else:
-                customCommands = LoadedDrivers.getDefaultCommandsDriver()
-            self.request = customCommands.setup(config, header, auth, parameters, options)
-            self.request = self.request.handle(command)
+        driverName = None
+        isScript = False
+
+        if (type(self.command) is not list):
+            self.command = shlex.split(self.command.strip())
+
+        if (len(self.command) < 1):
             return
 
-        self.request.handle(command[1:])
+        if ('--apitax-debug' in self.command):
+            self.options.debug = True
+            del self.command[self.command.index('--apitax-debug')]
 
-    def getRequest(self):
-        return self.request
+        if ('--apitax-sensitive' in self.command):
+            self.options.sensitive = True
+            del self.command[self.command.index('--apitax-sensitive')]
 
-    def getReturnedData(self):
-        returned = None
-        if (isinstance(self.getRequest(), Script)):
-            returned = self.getRequest().parser.data.getReturn()
-        if (returned is not None):
-            return returned
+        if ('--apitax-driver' in self.command):
+            driverName = self.command[self.command.index('--apitax-driver') + 1]
+            del self.command[self.command.index('--apitax-driver')]
+            del self.command[self.command.index('--apitax-sensitive') + 1]
+
+        if ('--apitax-script' in self.command):
+            isScript = True
+            del self.command[self.command.index('--apitax-script')]
+
+        if (driverName):
+            self.options.driver = LoadedDrivers.getDriver(driverName)
+        elif (LoadedDrivers.getDriver(self.command[0])):
+            self.options.driver = LoadedDrivers.getDriver(self.command[0])
+            del self.command[0]
         else:
-            return self.getRequest().getResponseBody()
+            self.options.driver = LoadedDrivers.getDefaultDriver()
+
+        self.command = Command(command=self.command, request=self.request, parameters=self.parameters,
+                               options=self.options)
+
+        if (isScript and self.options.driver.isDriverScriptable()):
+            self.response = self.options.driver.handleDriverScript(self.command)
+        elif (self.options.driver.isDriverCommandable()):
+            self.response = self.options.driver.handleDriverCommand(self.command)
+        else:
+            State.log.error(
+                'Driver `' + self.options.driver.getDriverName() + '` does not support this operation when expecting script(' + str(
+                    isScript) + '): ' + str(self.command))
+

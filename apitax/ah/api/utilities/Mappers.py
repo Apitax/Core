@@ -1,5 +1,5 @@
 
-from apitax.ah.Credentials import Credentials
+from apitax.ah.models.Credentials import Credentials
 from apitax.ah.api.models.user_auth import UserAuth
 
 

@@ -3,18 +3,20 @@ import json
 from time import time
 
 # Application imports
-from apitax.ah.Connector import Connector
+from apitax.ah.flow.Connector import Connector
 
 from apitax.grammar.grammartest import GrammarTest
 from apitax.utilities.Numbers import round2str
 from apitax.utilities.Npm import Npm
 
-from apitax.ah.Credentials import Credentials
+from apitax.ah.models.Credentials import Credentials
 
-from apitax.ah.State import State
+from apitax.ah.models.State import State
+
 
 def serialize(obj):
     return obj.serialize()
+
 
 class Startup:
 
@@ -45,8 +47,8 @@ class Startup:
                 self.log.log("")
 
             self.connector = Connector(options=self.options, command=self.command,
-                              credentials=Credentials(username=self.username, password=self.password),
-                              json=True)
+                                       credentials=Credentials(username=self.username, password=self.password),
+                                       json=True)
             self.result = self.connector.execute()
 
             # print(str(connector.http.getCatalog()))
@@ -60,7 +62,6 @@ class Startup:
                 for t in self.result.getRequest().parser.threads:
                     t.join()
                 self.log.log(">> Dumping Current DataStore Status:")
-                self.log.log("    * I recommend this website for looking at the data: http://json.parser.online.fr/")
                 self.log.log("")
                 self.log.log("")
                 self.log.log(json.dumps(self.result.getRequest().parser.data.getStatus(), default=serialize))
@@ -71,25 +72,13 @@ class Startup:
             if (self.options.debug):
                 self.log.log(">> Apitax finished processing in " + round2str(time() - self.t0) + "s")
                 self.log.log("")
-                self. log.log("")
+                self.log.log("")
 
         elif (self.usage == 'api'):
             from apitax.ah.api.Server import startDevServer
-            #if (self.build):
-                #self.log.log(">> Building Website Assets:")
-                #self.log.log("")
-                #path = State.paths['node']
-                #self.npm = Npm(path)
-                #self.npm.install()
-                #self.npm.build()
-                #if (self.watcher):
-                #    self.npm.buildWatch(True)
-                #self.log.log("")
-                #self.log.log(">> Done Building Website Assets")
             self.log.log(">> Booting Up API Server:")
             self.log.log("")
             self.server = startDevServer(self.config.get("ip"), self.config.get("port"))
-            #bSrv.start(config.get("ip"), config.get("port"), config=config, options=options, reloader=reloader)
 
         elif (self.usage == 'grammar-test'):
             GrammarTest(self.script)

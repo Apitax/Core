@@ -2,7 +2,7 @@ import configparser
 from apitax.utilities.Numbers import isNumber
 from apitax.utilities.Booleans import isBoolean, str2bool
 from apitax.utilities.Files import getRoot
-from apitax.ah.State import State
+from apitax.ah.models.State import State
 
 # Reads the config and allows us to retrieve values from it
 class Config:

@@ -1,13 +1,16 @@
-import base64
-import json
-from apitax.utilities.Files import getAllFiles
-from apitax.utilities.Files import readFile
-from apitax.utilities.Files import saveFile
-from apitax.utilities.Files import deleteFile
-from apitax.utilities.Files import renameFile
-from apitax.utilities.Files import getPath
-from apitax.ah.State import State
+from apitax.ah.models.State import State
 from apitax.config.Config import Config as ConfigConsumer
+from apitax.ah.flow.responses.ApitaxResponse import ApitaxResponse
+from apitax.ah.flow.requests.ApitaxRequest import ApitaxRequest
+from apitax.ah.builders.HeaderBuilder import HeaderBuilder
+from apitax.ah.builders.BodyBuilder import BodyBuilder
+from apitax.ah.catalog.CommandCatalog import CommandCatalog
+from apitax.ah.catalog.ScriptCatalog import ScriptCatalog
+from apitax.ah.catalog.EndpointCatalog import EndpointCatalog
+
+from apitax.ah.models.Command import Command
+from apitax.ah.models.Credentials import Credentials
+from apitax.ah.models.User import User
 
 
 # Base class for driver plugs
@@ -17,115 +20,241 @@ class Driver:
     def __init__(self):
         self.config = State.config
         self.driverConfig = None
-        if (self.isConfigurable):
-            self.driverConfig = ConfigConsumer.read(sectionName=self.__class__.__name__)
+        if (self.isDriverConfigurable()):
+            self.driverConfig = ConfigConsumer.read(sectionName=self.getDriverName())
+            # self.driverConfig = ConfigConsumer.read(sectionName=self.__class__.__name__)
 
-    def isConfigurable(self):
+    ##################
+    # DRIVER METHODS #
+    ##################
+
+    def isDriverScriptable(self) -> bool:
         return False
 
-    def getDefaultUsername(self):
-        return self.driverConfig.get('default-username')
-
-    def getDefaultPassword(self):
-        return self.driverConfig.get('default-password')
-
-    def getAuthEndpoint(self):
-        try:
-            return self.driverConfig.get('base-endpoint') + self.driverConfig.get('auth-endpoint')
-        except:
-            return '`base-endpoint` and/or `auth-endpoint` not specified in driver configuration.'
-
-    def getCatalogEndpoint(self):
-        try:
-            return self.driverConfig.get('base-endpoint') + self.driverConfig.get('catalog-endpoint')
-        except:
-            return '`base-endpoint` and/or `catalog-endpoint` not specified in driver configuration.'
-
-    def getScriptsPath(self, append=''):
-        return getPath(self.config.path + '/drivers/plugins/scriptax/' + self.__class__.__name__ + '/' + append)
-
-    def getPasswordAuthHeader(self, credentials):
-        if (not self.isApiAuthenticated()):
-            return {}
-        temp = credentials.username + ':' + credentials.password
-        return {'Authorization': 'Basic ' + base64.b64encode(temp.encode('utf-8'))}
-
-    def getPasswordAuthData(self, credentials):
-        if (not self.isApiAuthenticated()):
-            return {}
-        return {'username': credentials.username, 'password': credentials.password}
-
-    def getTokenAuthHeader(self, credentials):
-        if (not self.isApiAuthenticated()):
-            return {}
-        return {'Authorization': 'Token token="' + credentials.token + '"'}
-
-    def getContentTypeJSON(self):
-        # if(not self.isAuthenticated()):
-        #   return {}
-        return {'Content-type': 'application/json'}
-
-    def getToken(self, response):
-        return None
-
-    # Whether or not authentication can produce a usable token or
-    # whether to use the username and password for each further request
-    def isTokenable(self):
-        return True
-
-    # Whether or not crendetials or put into the post data or the header of the
-    # authentication request
-    def isCredentialsPosted(self):
+    # Whether Driver supports a custom command handler
+    def isDriverCommandable(self) -> bool:
         return False
 
-    def isApiAuthenticated(self):
-        return True
-
-    def piggyBackOffApiAuth(self):
+    # Whether the driver has custom configuration
+    def isDriverConfigurable(self) -> bool:
         return False
 
-    def apitaxAuth(self, authObj):
-        authObj = authObj['credentials']
-        try:
-            if(authObj.password == self.users[authObj.username]['password']):
-                return self.users[authObj.username]['role']
-        except:
-            return None
-        return None
+    # Whether the driver supports providing a backend for Apitax authentication
+    def isDriverAuthenticatable(self) -> bool:
+        return False
 
+    # Whether this driver requires a specific apitax user role to use
+    def isDriverRoleRestricted(self) -> bool:
+        return False
 
-    def getCatalog(self, auth):
-        return {"endpoints": {"tests": {"label": "Placeholder Test", "value": "https://jsonplaceholder.typicode.com"}},
-                "selected": "https://jsonplaceholder.typicode.com"}
+    # Whether the driver can only be used by certain users
+    def isDriverWhitelisted(self) -> bool:
+        return False
 
-    def getScriptsCatalog(self):
-        files = getAllFiles(self.getScriptsPath("scripts/**/*.ah"))
-        returner = {"scripts": []}
-        for file in files:
-            returner['scripts'].append(
-                {"label": file.split('/')[-1].split('.')[0].title(), "relative-path": file, "path": getPath(file)})
-        # print(returner)
-        return returner
+    # Whether certain users cannot use this driver
+    def isDriverBlacklisted(self) -> bool:
+        return False
 
-    def getCommandsCatalog(self):
-        from apitax.drivers.DriverCommandsFactory import DriverCommandsFactory
-        customCommands = DriverCommandsFactory.make(self.config.get('driver') + 'Commands')
-        customCommands.setup(self.config, None, None, {}, False, False)
-        return customCommands.getCatalog()
+    # Returns the driver specific config
+    def getDriverConfig(self) -> ConfigConsumer:
+        return self.driverConfig
 
-    def readScript(self, path):
-        return readFile(path)
+    # Returns the name of the driver
+    def getDriverName(self) -> str:
+        return ''
 
-    def renameScript(self, pathOriginal, pathNew):
-        return renameFile(pathOriginal, pathNew)
+    # Returns a short description of the driver
+    def getDriverDescription(self) -> str:
+        return ''
 
-    # Save does update and create
-    def saveScript(self, path, content):
-        return saveFile(path, content)
+    # Returns a URL to an external webpage where someone can read help on the driver
+    def getDriverHelpEndpoint(self) -> str:
+        return ''
 
-    def deleteScript(self, path):
-        return deleteFile(path)
+    # Returns a short sentence or two used after scripts finish processing
+    def getDriverTips(self) -> str:
+        return ''
 
-    def serialize(self):
-        return {"authenticated": self.isApiAuthenticated(), "auth-tokens": self.isTokenable(),
-                "auth-endpoint": self.getAuthEndpoint()}
+    # If driver is role restricted, this is the minimum role required
+    def getDriverMinimumRole(self) -> str:
+        return ''
+
+    # If driver is whitelisted, returns the whitelist
+    def getDriverWhitelist(self) -> dict:
+        return {}
+
+    # If driver is blacklisted, return the blacklist
+    def getDriverBlacklist(self) -> dict:
+        return {}
+
+    # If driver is scriptable, returns the driver script catalog
+    def getDriverScriptCatalog(self) -> ScriptCatalog:
+        return ScriptCatalog()
+
+    # If driver is commandable, returns the driver command catalog
+    def getDriverCommandCatalog(self) -> CommandCatalog:
+        return CommandCatalog()
+
+    # Returns the contents of a script
+    def getDriverScript(self, path) -> str:
+        return ''
+
+    # Renames a script
+    def renameDriverScript(self, original, now) -> bool:
+        return False
+
+    # Creates/Updates a scripts content
+    def saveDriverScript(self, path, content) -> bool:
+        return False
+
+    # Deletes a script
+    def deleteDriverScript(self, path) -> bool:
+        return False
+
+    # Driver command handler
+    def handleDriverCommand(self, command: Command) -> ApitaxResponse:
+        return ApitaxResponse()
+
+    # Driver script handler
+    def handleDriverScript(self, command: Command) -> ApitaxResponse:
+        return ApitaxResponse()
+
+    # Event handler fired before the driver command handler executes
+    def onPreHandleDriverCommand(self, command: Command) -> Command:
+        return command
+
+    # Event handler fired before the driver script handler executes
+    def onPreHandleDriverScript(self, command: Command) -> Command:
+        return command
+
+    ##################
+    # API METHODS #
+    ##################
+
+    # Whether the API is gated by authentication
+    def isApiAuthenticated(self) -> bool:
+        return False
+
+    # Whether the API uses a separate API request to generate a token or some other task
+    def isApiAuthenticationSeparateRequest(self) -> bool:
+        return False
+
+    # Returns whether an API endpoint catalog can be generated by this driver
+    def isApiCataloggable(self) -> bool:
+        return False
+
+    # Whether an API uses tokens or not
+    def isApiTokenable(self) -> bool:
+        return False
+
+    # If api is authenticated and uses a separate request, returns the api auth endpoint
+    def getApiAuthEndpoint(self) -> str:
+        return ''
+
+    # If api is cataloggable, return the catalog endpoint
+    def getApiCatalogEndpoint(self) -> str:
+        return ''
+
+    # Get base endpoint to reach the API
+    def getApiBaseEndpoint(self) -> str:
+        return ''
+
+    # Returns the endpoint catalog
+    def getApiEndpointCatalog(self) -> EndpointCatalog:
+        return EndpointCatalog()
+
+    # If api uses tokens, return the token from the auth response
+    def getApiToken(self, response: ApitaxResponse) -> Credentials:
+        return Credentials()
+
+    # Returns the api auth type
+    # (None, Basic, Bearer, Body etc.)
+    def getApiAuthType(self) -> str:
+        return ''
+
+    # Return a default set of api credentials
+    def getDefaultApiCredentials(self) -> Credentials:
+        return Credentials()
+
+    # Returns the api format
+    #  (None, json, xml, text)
+    def getApiFormat(self) -> str:
+        return ''
+
+    # Returns the api status
+    # (None, up, down, maintenance etc.)
+    def getApiStatus(self) -> str:
+        return 'up'
+
+    # Returns a short description of the api
+    def getApiDescription(self) -> str:
+        return ''
+
+    # Returns a URL to externally hosted api help docs
+    def getApiDocsEndpoint(self) -> str:
+        return ''
+
+    # Authenticate against the API
+    def authenticateApi(self, credentials: Credentials) -> ApitaxResponse:
+        return ApitaxResponse()
+
+    # Add auth header to auth requests if applicable
+    def addApiAuthHeader(self, credentials: Credentials, headerBuilder: HeaderBuilder) -> HeaderBuilder:
+        return headerBuilder
+
+    # Add headers to all request if applicable
+    def addApiHeaders(self, headerBuilder: HeaderBuilder) -> HeaderBuilder:
+        return headerBuilder
+
+    # Add auth body to auth requsts if applicable
+    def addApiAuthBody(self, credentials: Credentials, bodyBuilder: BodyBuilder) -> BodyBuilder:
+        return bodyBuilder
+
+    # Add body to all requests if applicable
+    def addApiBody(self, bodyBuilder: BodyBuilder) -> BodyBuilder:
+        return bodyBuilder
+
+    ##################
+    # APITAX METHODS #
+    ##################
+
+    # Whether or not Apitax auth is based upon the ApiAuth
+    def isApitaxAuthBasedOnApiAuth(self) -> bool:
+        return False
+
+    # Authenticate apitax using either auth if apitax auth is based on the api auth or credentials otherwise
+    # Returns the users role
+    def authenticateApitax(self, credentials: Credentials = None) -> str:
+        return ''
+
+    # Create an apitax user
+    def createApitaxUser(self, user: User) -> bool:
+        return False
+
+    # Update an apitax user
+    def saveApitaxUser(self, user: User) -> bool:
+        return False
+
+    # Returns an apitax user
+    def getApitaxUser(self, user: User) -> User:
+        return user
+
+    # Delete an apitax user
+    def deleteApitaxUser(self, user: User) -> bool:
+        return False
+
+    # Event handler fired before an apitax request is executed
+    def onPreApitaxRequest(self, request: ApitaxRequest) -> ApitaxRequest:
+        return request
+
+    # Event handler fired after an apitax request is executed
+    def onPostApitaxRequest(self, request: ApitaxRequest) -> ApitaxRequest:
+        return request
+
+    # Event handler fired before an Apitax response is generated
+    def onPreApitaxResponse(self, response: ApitaxResponse) -> ApitaxResponse:
+        return response
+
+    # Event handler fired after an apitax response is generated
+    def onPostApitaxResponse(self, response: ApitaxResponse) -> ApitaxResponse:
+        return response

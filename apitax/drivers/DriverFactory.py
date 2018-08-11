@@ -12,3 +12,8 @@ class DriverFactory:
     @staticmethod
     def make(name):
         return Drivers.get(name)
+
+    @staticmethod
+    def makeInstance(basedUpon):
+        clazz = basedUpon.__class__
+        return clazz()

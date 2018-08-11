@@ -16,7 +16,6 @@ class ScriptData:
                     'error': False
                 },
                 "urls": {"current": ""},
-                "auth": None,
                 "vars": {"params": {}},
                 "requests": {},
                 "exports": {
@@ -81,14 +80,6 @@ class ScriptData:
 
     def getReturn(self):
         key = "exports.return"
-        return self.getDotNotation(key)
-
-    def setAuth(self, value):
-        key = "auth"
-        self.storeDotNotation(value, key)
-
-    def getAuth(self):
-        key = "auth"
         return self.getDotNotation(key)
 
     def setFlow(self, name, value):

@@ -12,15 +12,15 @@ from apitax.config.Config import Config as ConfigConsumer
 
 from apitax.drivers.Drivers import Drivers
 
-from apitax.ah.Options import Options
-from apitax.ah.LoadedDrivers import LoadedDrivers
+from apitax.ah.models.Options import Options
+from apitax.ah.flow.LoadedDrivers import LoadedDrivers
 from apitax.utilities.Files import getRoot
 
 from apitax.logs.Log import Log
 from apitax.logs.BufferedLog import BufferedLog
 from apitax.logs.StandardLog import StandardLog
 
-from apitax.ah.State import State
+from apitax.ah.models.State import State
 
 
 class Setup:
@@ -145,7 +145,15 @@ class Setup:
 
         self.log.log('>> Runtime Settings:')
 
-        self.log.log('    * Using config: ' + configFile)
+        self.log.log('    * Paths')
+
+        self.log.log('      * Root:   ' + State.paths['root'])
+
+        self.log.log('      * Config: ' + configFile)
+
+        self.log.log('      * Log:    ' + str(self.loggingSettings.get('path')))
+
+        self.log.log('      * Apitax: ' + State.paths['apitax'])
 
         self.log.log('    * Debug: ' + str(self.debug))
 
@@ -156,7 +164,6 @@ class Setup:
         self.log.log('    * Logging: ' + str(self.loggingSettings.get('doLog')))
 
         if (self.loggingSettings.get('doLog')):
-            self.log.log('      * Log Filepath: ' + str(self.loggingSettings.get('path')))
             self.log.log('      * Colorize CLI: ' + str(self.loggingSettings.get('colorize')))
 
         self.log.log('')
@@ -189,7 +196,9 @@ class Setup:
         self.log.getLoggerDriver().outputLog()
 
     def load(self):
-        drivers = self.config.getAsList('drivers')
+        drivers:list = ["Api"] + ["Scriptax"]
+        if(self.config.has('drivers')):
+            drivers += self.config.getAsList('drivers')
         for driver in drivers:
             LoadedDrivers.load(driver)
 
@@ -198,10 +207,10 @@ class Setup:
             self.log.log('')
             self.log.log('')
 
-        if (self.username == '' and self.config.has('default-username')):
-            self.username = LoadedDrivers.getDefaultBaseDriver().getDefaultUsername()  # config.get('default-username')
+        #if (self.username == '' and self.config.has('default-username')):
+        #    self.username = LoadedDrivers.getDefaultBaseDriver().getDefaultUsername()  # config.get('default-username')
 
-        if (self.password == '' and self.config.has('default-password')):
-            self.password = LoadedDrivers.getDefaultBaseDriver().getDefaultPassword()  # config.get('default-password')
+        #if (self.password == '' and self.config.has('default-password')):
+        #    self.password = LoadedDrivers.getDefaultBaseDriver().getDefaultPassword()  # config.get('default-password')
 
         self.log.getLoggerDriver().outputLog()

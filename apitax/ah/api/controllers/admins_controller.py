@@ -5,8 +5,8 @@ from apitax.ah.api.models.error_response import ErrorResponse  # noqa: E501
 from apitax.ah.api.models.response import Response  # noqa: E501
 from apitax.ah.api import util
 
-from apitax.ah.State import State
-from apitax.ah.LoadedDrivers import LoadedDrivers
+from apitax.ah.models.State import State
+from apitax.ah.flow.LoadedDrivers import LoadedDrivers
 
 from apitax.ah.api.utilities.Roles import hasAccess as roleAccess
 from flask import redirect
@@ -44,7 +44,7 @@ def driver_status(name):  # noqa: E501
     if(not hasAccess()):
         return redirectUnauthorized()
 
-    driver = LoadedDrivers.getDefaultBaseDriver()
+    driver = LoadedDrivers.getDefaultDriver()
     body = {"name": str(driver.__class__.__name__)}
     body.update(driver.serialize())
     return Response(status=200, body=body)

@@ -1,12 +1,12 @@
 from apitax.grammar.build.Ah210Parser import Ah210Parser
 from apitax.grammar.build.Ah210Visitor import Ah210Visitor as Ah210VisitorOriginal
 from apitax.ah.scriptax.ScriptData import ScriptData as DataStore
-from apitax.logs.Log import Log
+from apitax.ah.models.State import State
 from apitax.utilities.Async import GenericExecution
 from apitax.utilities.Json import isJson
-from apitax.ah.LoadedDrivers import LoadedDrivers
-from apitax.ah.Credentials import Credentials
-from apitax.ah.Options import Options
+from apitax.ah.flow.LoadedDrivers import LoadedDrivers
+from apitax.ah.models.Credentials import Credentials
+from apitax.ah.models.Options import Options
 
 import json
 import re
@@ -15,15 +15,14 @@ import threading
 
 class AhVisitor(Ah210VisitorOriginal):
 
-    def __init__(self, config, header, auth, parameters={}, options=Options(), file=''):
+    def __init__(self, credentials: Credentials = Credentials(), parameters={}, options: Options = Options(), file=''):
         self.data = DataStore()
-        self.log = Log()
+        self.log = State.log
         self.appOptions = options
-        self.header = header
-        self.config = config
+        self.config = State.config
         self.parser = None
         self.options = {}
-        self.data.setAuth(auth)
+        self.credentials = credentials
         self.data.storeVar("params.passed", parameters)
         self.state = {'file': file, 'line': 0, 'char': 0}
         self.threads = []
@@ -49,22 +48,23 @@ class AhVisitor(Ah210VisitorOriginal):
                 self.data.storeRequest(commandHandler.getRequest().getResponseBody(), export=export)
 
     def executeCommand(self, resolvedCommand, logPrefix=''):
-        from apitax.ah.Connector import Connector
+        from apitax.ah.flow.Connector import Connector
         if (self.appOptions.debug):
             self.log.log('> Executing Commandtax: \'' + resolvedCommand['command'] + '\' ' + 'with parameters: ' + str(
                 resolvedCommand['parameters']), logPrefix)
             self.log.log('')
 
-        auth = None
+        credentials = None
         if (resolvedCommand['auth']):
-            auth = resolvedCommand['auth']
+            credentials = Credentials(username=resolvedCommand['auth'].username, password=resolvedCommand.password,
+                                      token=resolvedCommand.token)
         else:
-            auth = self.data.getAuth()
+            credentials = self.credentials
 
         connector = Connector(options=Options(debug=self.appOptions.debug, sensitive=self.appOptions.sensitive,
                                               driver=resolvedCommand['driver']),
-                              credentials=Credentials(username=auth.username, password=auth.password, token=auth.token),
-                              command=resolvedCommand['command'], parameters=resolvedCommand['parameters'], json=True)
+                              credentials=credentials,
+                              command=resolvedCommand['command'], parameters=resolvedCommand['parameters'])
         commandHandler = connector.execute()
 
         if (hasattr(commandHandler.getRequest(), 'parser')):
@@ -118,8 +118,7 @@ class AhVisitor(Ah210VisitorOriginal):
         return line
 
     def executeIsolatedCallback(self, callback, resultScope, logPrefix=''):
-        visitor = AhVisitor(self.config, self.header, self.data.getAuth(), options=Options(debug=self.appOptions.debug,
-                                                                                           sensitive=self.appOptions.sensitive))
+        visitor = AhVisitor(options=Options(debug=self.appOptions.debug, sensitive=self.appOptions.sensitive))
         visitor.setState(file=self.state['file'])
         visitor.log.prefix = logPrefix
         visitor.data.storeVar('result', resultScope)
@@ -148,8 +147,9 @@ class AhVisitor(Ah210VisitorOriginal):
 
         if (self.isError()):
             error = self.isError()
-            self.log.error(error['message'] + ' in ' + self.state['file'] + ' @' + str(self.state['line']) + ':' + str(
-                self.state['char']), prefix=error['logprefix'])
+            self.log.error(
+                error['message'] + ' in ' + str(self.state['file']) + ' @' + str(self.state['line']) + ':' + str(
+                    self.state['char']), prefix=error['logprefix'])
             if (self.appOptions.debug):
                 self.log.log('')
                 self.log.log('')
@@ -497,15 +497,14 @@ class AhVisitor(Ah210VisitorOriginal):
 
     # Visit a parse tree produced by Ah210Parser#commandtax.
     def visitCommandtax(self, ctx: Ah210Parser.CommandtaxContext):
-        from apitax.ah.commandtax.commands.Script import Script as ScriptCommand
         firstArg = self.visit(ctx.expr())
         command = ""
         strict = True
-        auth = None
+        credentials = None
         driver = None
 
         if (not ctx.SCRIPT() and not ctx.COMMANDTAX()):
-            command += "custom"
+            command += "api"
             if (ctx.GET()):
                 command += " --get"
             if (ctx.POST()):
@@ -519,7 +518,7 @@ class AhVisitor(Ah210VisitorOriginal):
             command += " --url " + self.data.getUrl("current") + firstArg
 
         elif (ctx.SCRIPT()):
-            command += "script " + firstArg
+            command += "scriptax " + firstArg + " --apitax-script"
 
         elif (ctx.COMMANDTAX()):
             command = firstArg
@@ -535,12 +534,12 @@ class AhVisitor(Ah210VisitorOriginal):
             if ('header' in dataArg):
                 command += " --data-header '" + json.dumps(dataArg['header']) + "'"
             if ('driver' in dataArg):
-                command += " --driver " + dataArg['driver']
+                command += " --apitax-driver " + dataArg['driver']
                 driver = dataArg['driver']
             if ('strict' in dataArg):
                 strict = bool(dataArg['strict'])
             if ('auth' in dataArg):
-                auth = dataArg['auth']
+                credentials = dataArg['auth']
 
         i = 0
         parameters = {}
@@ -549,7 +548,8 @@ class AhVisitor(Ah210VisitorOriginal):
             parameters[opParam['label']] = opParam['value']
             i += 1
 
-        return {'command': command, 'parameters': parameters, 'strict': strict, 'auth': auth, 'driver': driver}
+        return {'command': command, 'parameters': parameters, 'strict': strict, 'credentials': credentials,
+                'driver': driver}
 
     # Visit a parse tree produced by Ah210Parser#execute.
     def visitExecute(self, ctx):
@@ -656,7 +656,7 @@ class AhVisitor(Ah210VisitorOriginal):
 
     # Visit a parse tree produced by Ah210Parser#login_statement.
     def visitLogin_statement(self, ctx: Ah210Parser.Login_statementContext):
-        from apitax.ah.Connector import Connector
+        from apitax.ah.flow.Connector import Connector
 
         parameters = self.visit(ctx.optional_parameters_block())
 
@@ -676,7 +676,7 @@ class AhVisitor(Ah210VisitorOriginal):
             connector = Connector(options=Options(debug=self.appOptions.debug, sensitive=True, driver=driver),
                                   credentials=Credentials(username=parameters['username'],
                                                           password=parameters['password'], extra=extra))
-            return connector.getCredentials()
+            return connector.credentials
         elif ('token' in parameters):
             return Credentials(token=parameters['token'])
         else:
@@ -686,18 +686,17 @@ class AhVisitor(Ah210VisitorOriginal):
     # Visit a parse tree produced by Ah210Parser#endpoint_statement.
     def visitEndpoint_statement(self, ctx: Ah210Parser.Endpoint_statementContext):
         name = self.visit(ctx.expr())
-        driver = None
         try:
             name.find('@')
             name = name.split('@')
-            driver = LoadedDrivers.getBaseDriver(name[1])
+            driver = LoadedDrivers.getDriver(name[1])
             name = name[0]
         except:
             if (self.appOptions.driver):
-                driver = LoadedDrivers.getBaseDriver(self.appOptions.driver)
+                driver = LoadedDrivers.getDriver(self.appOptions.driver)
             else:
-                driver = LoadedDrivers.getDefaultBaseDriver()
-        endpoints = driver.getCatalog(self.data.getAuth())['endpoints']
+                driver = LoadedDrivers.getDefaultDriver()
+        endpoints = driver.getEndpointCatalog()['endpoints']
         if (name in endpoints):
             return endpoints[name]['value']
         else:
@@ -743,44 +742,49 @@ class AhVisitor(Ah210VisitorOriginal):
         self.importCommandRequest(commandHandler)
 
         if (self.appOptions.debug):
-            self.log.log('> Importing: ' + resolvedCommand['command'])
+            self.log.log('> Importing: ' + commandHandler)
             self.log.log('')
 
     # Visit a parse tree produced by Ah210Parser#casting.
     def visitCasting(self, ctx: Ah210Parser.CastingContext):
         value = self.visit(ctx.expr())
+        returner = None
         if (ctx.TYPE_INT()):
             returner = int(value)
             if (self.appOptions.debug):
                 self.log.log('> Explicitly Casting \'' + str(value) + '\' to int: ' + json.dumps(returner))
                 self.log.log('')
             return returner
+
         if (ctx.TYPE_DEC()):
             returner = float(value)
             if (self.appOptions.debug):
                 self.log.log('> Explicitly Casting \'' + str(value) + '\' to number: ' + json.dumps(returner))
                 self.log.log('')
             return returner
+
         if (ctx.TYPE_BOOL()):
             returner = bool(value)
             if (self.appOptions.debug):
                 self.log.log('> Explicitly Casting \'' + str(value) + '\' to boolean: ' + json.dumps(returner))
                 self.log.log('')
             return returner
+
         if (ctx.TYPE_STR()):
             returner = str(value)
             if (self.appOptions.debug):
                 self.log.log('> Explicitly Casting \'' + str(value) + '\' to string: ' + json.dumps(returner))
                 self.log.log('')
             return returner
+
         if (ctx.TYPE_LIST()):
             returner = list(str(value).split(","))
             if (self.appOptions.debug):
                 self.log.log('> Explicitly Casting \'' + str(value) + '\' to list: ' + json.dumps(returner))
                 self.log.log('')
             return returner
+
         if (ctx.TYPE_DICT()):
-            returner = None
             if (isinstance(value, dict)):
                 returner = value
             elif (isinstance(value, list)):
@@ -794,6 +798,7 @@ class AhVisitor(Ah210VisitorOriginal):
                 returner = dict(json.loads(str(value)))
             else:
                 returner = dict({"default": value})
+
             if (self.appOptions.debug):
                 self.log.log('> Explicitly Casting \'' + str(value) + '\' to dictionary: ' + json.dumps(returner))
                 self.log.log('')
@@ -802,10 +807,10 @@ class AhVisitor(Ah210VisitorOriginal):
 
     # Visit a parse tree produced by Ah210Parser#auth.
     def visitAuth(self, ctx: Ah210Parser.AuthContext):
-        auth = self.visit(ctx.expr())
-        self.data.setAuth(auth)
+        credentials = self.visit(ctx.expr())
+        self.credentials = credentials
         if (self.appOptions.debug):
-            self.log.log("> Setting active auth credentials to user: " + auth.username)
+            self.log.log("> Setting active auth credentials to user: " + credentials.username)
             self.log.log("")
 
     # Visit a parse tree produced by Ah210Parser#url.
