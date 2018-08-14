@@ -326,11 +326,11 @@ class AhVisitor(Ah210VisitorOriginal):
                 value = var - 1
             else:
                 if (ctx.PE()):
-                    value += var
+                    value = var + value
                 elif (ctx.ME()):
                     value = var - value
                 elif (ctx.MUE()):
-                    value *= var
+                    value = var * value
                 elif (ctx.DE()):
                     value = var / value
 
