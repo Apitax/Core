@@ -1,12 +1,19 @@
-grammar Ah210;
-
-//options { tokenVocab=AhLex210; }
+grammar Ah3;
 
 /***********
 PARSER RULES
 ***********/
 
-prog : statements EOF ;
+prog : script_structure EOF ;
+
+script_structure : global_statements statements ;
+
+global_statements : 
+      (extends_statement TERMINATOR)? 
+      (sig_statement TERMINATOR)? 
+      (options_statement TERMINATOR)? 
+      (import_statement TERMINATOR)* 
+      ;
 
 statements : statement* ;
 
@@ -19,24 +26,23 @@ statement :
 terminated : 
       (
         each_statement
-        | params_statement
-        | options_statement
         | return_statement
         | error_statement
         | delete_statement
+        | execute_statement
+        | method_call
         | await
-        | executers
         | assignment
-        | scoping
         | log
         | auth
         | url
       ) TERMINATOR ;
 
 non_terminated : 
-      flow ;
+      flow
+      | method_statement ;
 
-executers : execute
+execute_statement : execute
          | async_execute ;
 
 expr :
@@ -52,12 +58,15 @@ expr :
       | expr (EQ | NEQ) expr
       | expr AND expr
       | expr OR expr
+      | create_instance
+      | method_call
       | async_execute
       | execute
       | login_statement
       | endpoint_statement
       | casting
       | count
+      | reflection
       | atom ;
 
 assignment : 
@@ -73,7 +82,13 @@ flow :
       if_statement
       | while_statement
       | for_statement ;
-      
+
+create_instance : NEW label LPAREN optional_parameters_block RPAREN ; 
+
+method_statement : attribute+ ASYNC? label LPAREN optional_parameters_block RPAREN block ;
+
+method_call : AWAIT? labels LPAREN optional_parameters_block RPAREN callback? ;
+
 if_statement : IF condition block (ELSE IF condition block)* (ELSE block)? ;
 
 while_statement : WHILE condition block ;
@@ -106,8 +121,6 @@ commandtax :
         | PATCH 
         | DELETE 
         | COMMANDTAX 
-        | SCRIPT 
-        | CUSTOM
       ) LPAREN expr (COMMA obj_dict)? (COMMA optional_parameter)* RPAREN ;
 
 execute : commandtax callback? ;
@@ -118,15 +131,21 @@ await: AWAIT labels? ;
 
 labels : label_comp (DOT label_comp)* ;
 
-label_comp : LABEL | inject ;
+label_comp : label | inject ;
 
-params_statement : SIG sig_parameter (COMMA sig_parameter)* ;
+label : LABEL ;
 
-options_statement : OPTIONS expr ;
+attribute : API | SCRIPT ; 
 
-delete_statement : DEL labels ;
+extends_statement : EXTENDS LPAREN labels RPAREN ; 
 
-error_statement : ERROR expr? ;
+sig_statement : SIG sig_parameter (COMMA sig_parameter)* ;
+
+options_statement : OPTIONS LPAREN optional_parameters_block RPAREN;
+
+delete_statement : DEL LPAREN labels RPAREN;
+
+error_statement : ERROR LPAREN expr? RPAREN;
 
 return_statement : RETURNS expr? ;
 
@@ -134,13 +153,7 @@ login_statement : LOGIN LPAREN optional_parameters_block RPAREN ;
 
 endpoint_statement : ENDPOINT LPAREN expr RPAREN ; 
 
-scoping : imports | exports | name ;
-
-name : NAME expr;
-
-exports : EXPORT (labels | execute);
-
-imports : IMPORT execute ;
+import_statement : (FROM label)? IMPORT labels (AS label)?
 
 casting : 
       (
@@ -152,13 +165,15 @@ casting :
         | TYPE_DICT
       ) LPAREN expr RPAREN ;
 
-auth : AUTH expr ;
+auth : AUTH LPAREN expr RPAREN;
 
-url : URL expr ;
+url : URL LPAREN expr RPAREN;
 
 log : LOG LPAREN expr RPAREN ;
 
 count : HASH expr ;
+
+reflection : AT labels ;
 
 inject : MUSTACHEOPEN expr MUSTACHECLOSE ;
 
@@ -234,8 +249,8 @@ HEX : ('0x'|'0X')(HEXDIGIT)HEXDIGIT*;
 EXECUTEOPEN : '{%' ;
 EXECUTECLOSE : '%}' ;
 
-MUSTACHEOPEN : '{{' ;
-MUSTACHECLOSE : '}}' ;
+MUSTACHEOPEN : '<' ;
+MUSTACHECLOSE : '>' ;
 
 BLOCKOPEN : '{';
 BLOCKCLOSE : '}';
@@ -252,6 +267,7 @@ VARIABLE_ID : '$' ;
 TERMINATOR : ';' ;
 HASH : '#' ;
 ARROW : '->' ;
+AT : '@' ;
 
 
 /** KEYWORD COMBINATORS **/
@@ -282,21 +298,18 @@ LOG : L O G ;
 ENDPOINT : E N D P O I N T ;
 
 
-/** METHODS **/           // These don't use ()'s and they do NOT return any values
+/** METHODS **/           // These don't return any values
 SIG : S I G ;
 OPTIONS : O P T I O N S ;
-NAME : N A M E ;
 IMPORT : I M P O R T ;
-EXPORT : E X P O R T ;
 DEL : D E L ;
 URL : U R L ;
 AUTH : A U T H ;
+EXTENDS : E X T E N D S ;
 
 
 /** COMMANDTAX METHODS **/
 COMMANDTAX : C T ;
-SCRIPT : S C R I P T ;
-CUSTOM : C U S T O M ;
 GET : G E T ;
 POST : P O S T ;
 PUT : P U T ;
@@ -304,11 +317,19 @@ PATCH : P A T C H ;
 DELETE : D E L E T E ;
 
 
+/** Attributes **/
+SCRIPT : S C R I P T ;
+API : A P I ;
+
+
 /** KEYWORDS **/
 IN : I N ;
+AS : A S ;
+FROM : F R O M ;
 SET : S E T ;
 ASYNC : A S Y N C ;
 AWAIT : A W A I T ;
+NEW : N E W ;
 
 
 /** KEYCHANGERS **/
