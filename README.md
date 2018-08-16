@@ -172,10 +172,6 @@ Scriptax is an API first automation language. Scriptax is not a general purpose 
     * Data Object takes optional keys which correspond to Commandtax custom data: `post, query, path, header`
     * Returns the result
     * Supports async, callbacks
-* `script(required: "\<someScriptFile\>", optional: param1...n) {% %}`
-    * Executes a script
-    * Returns the result
-    * Supports async, callbacks
 * {dataObj}
     * JSON object which includes optional arguments for the command such as:
         * auth - The set of credentials to use for this request
@@ -184,8 +180,17 @@ Scriptax is an API first automation language. Scriptax is not a general purpose 
         * path - json - An object detailing any path parameters
         * driver - The driver to use for this request
         * strict - default: true - Whether or not the entire script should fail if the requests returns a status code >299 or <200
+* `new OpenstackNetworks(optional=parameters);`
+    * Creates a new instance of the OpenstackNetworks script
+    * The optional parameters should correspond to the sig line
+* `\<attributes\> \<methodName\>(optional=parameters) {}`
+    * Adds a method to the current script
+    * Attributes can be either `api` or `script`
+* `\<methodName\>(optional=parameters);`
+    * Executes a method with the optional parameters
 * `async`
     * Add this keyword in front of any keyword which supports async to run the operation in a new thread
+    * Can also be used in front of a method statement: `api async getNetworks() { }`
     * `async get("http://placeholderjson.com/users", {}) {% %}`
     * `someVar = async get("http://placeholderjson.com/users", {}) {% %}`
     * Callbacks execute prior to storing the result of the request into a variable
@@ -193,6 +198,7 @@ Scriptax is an API first automation language. Scriptax is not a general purpose 
 * `await \<someOptionalVar\>;`
     * When a variable is specified, wait until the async execution specified by that variable completes.
     * When no variable is specified, wait until all of the open threads in the current script complete before moving on
+    * Can also be used when using a method call: `result = await openstack.getNetworks();`
 * {% %};
     * Callback block
     * The contents will be executed in an isolated scope, usually only having access to a `results` variable
@@ -213,13 +219,21 @@ Scriptax is an API first automation language. Scriptax is not a general purpose 
 * `\#`
     * Return the length of the variable
     * Works on strings, lists, dictionaries (Only returns the top level count)
-* `del \<someVar\>`
+* `\$`
+    * Escapes the label name such that labels which are the same as language keywords can be used
+* `\!`
+    * When adding this to the very start of a statement, the execution of that line will not be logged or printed
+* `\@`
+    * Returns the reflection of a variable
+* `extends(\<someScriptPath\>);`
+    * Adds polymorphism to the script by extending another script
+* `del(\<someVar\>)`
     * Remove someVar from the current scope
 * `return \<optionalVar\>`
     * Exits the script immediately and returns some expression
-* `options`
+* `options(optional=parameters)`
     * Used to specify options for the script
-* `sig param1Required, thisParam=isOptional, thisOneisRequired;`
+* `sig(param1Required, thisParam=isOptional, thisOneisRequired);`
     * Specify parameters for a script
 * `if (condition) {}`
     * IF statement
@@ -231,20 +245,20 @@ Scriptax is an API first automation language. Scriptax is not a general purpose 
     * Loop from 1 to someNumber and set someVar to the current iteration
 * `each \<someList\> {% %};`
     * Loop through a list setting `results` to the current item and executing instructions in an isolated callback
-* `\<someVar\> = \<someValue\>`
+* `\<someVar\> = \<someExpression\>`
     * Sets a variable
     * Supports expressions, strings, numbers, booleans, dictionaries, lists, and commandtax responses
 * `"this is a string {{ someVar }}"`
     * Injects the contents of a variable
     * Fancy stuff is possible such as: set newVar = ct("{{someVar}}")
-* `{{ r: someResponse }}`
-    * Injects the response of some request
-* `import ct("some commandtax")`
-    * Executes a command and imports the response to the current scope
-* `export ct("some commandtax"), export someVar` 
-    * Imports the values to the current scope and exports them to allow a parent scope to access these values 
-* `auth \<someAuthObject\>`
-    * Sets the default auth object for the current executing script
+* `\< someExpression \>`
+    * Injects the expression
+    * In this case, the arrow brackets must be included
+* `from driverName import someScript as someName`
+    * This imports other scriptax to be used inside of the current script
+    * `from` and `as` are optional
+* `auth(\<someAuthObject\>)`
+    * Sets the default auth for the current executing script
 * `login(username={{someUser}}, password={{somePass}}, token={{someToken}}, driver={{someDriver}}, extra={{someJSONObj}})`
     * Each parameter in login is optional. The required parameters is defined via the driver to be used by the login command. This driver is either the default script driver or the driver specified in the login parameters.
     * Returns an auth object
@@ -252,10 +266,7 @@ Scriptax is an API first automation language. Scriptax is not a general purpose 
 * `endpoint(someEndpointName@someDriver)`
     * Using the drivers `getCatalog` method, this will return the the endpoint found in the catalog of the specified driver
     * This can be used directly with `url` such as: `url endpoint('keystone@openstack')`
-* `name \<someName\>`
-    * Sets the reference name of the script.
-    * Supports strings and expressions
-* `url \<someUrl\>`
+* `url(\<someUrl\>)`
     * Sets the current working URL to be used in further commandtax
 * `log("log some output to the console & log file")`
     * Supports expressions
@@ -264,13 +275,41 @@ Scriptax is an API first automation language. Scriptax is not a general purpose 
 * `/* some comment spanning multiple lines */`
     * Block comment
 
+#### Scopes
+In Scriptax, there is no global scope. Every piece of data belongs to a scope. There are many different scope types within Scriptax:
+* Script Scope - These are symbols that are accessible within an entire script. Examples of these are sig parameters or script level variables.
+* Method Scope - These are symbols that are accessible from within a method. Of course, this scope inherits from the script scope.
+* Flow/Block Scope - These are symbols that are accessible within a flow block such as if statements or loops. Of course, this scope inherits from the script scope.
+* Callback Scope - These are symbols that are accessible within a callback. Usually, a `result` variable will be accessible as well as any other values passed in via `(optional=parameter) -> {% %}` syntax. Typically callback scope is read only and any changes made to any variables in here will only be changed within the callback scope. The only exception to this is the `result` variable which is generally used to pass data back in a return style. 
+
+`Script`, `Method`, and `Flow/Block` scopes will all inherit their parent scopes. `Callback` scopes on the other hand are completely isolated and must be told explicilty which symbols are allowed in and they will only be allowed in as read-only.
+
+#### Architecture
+* In Scriptax, every file is considered an object. In other words, every file is analogous to `class` in other programming and scripting languages. 
+* Instances in Scriptax only ensure that variables in the script scope are unique. 
+* Methods in Scriptax are inherently `static`. In other words, methods are not unique per instance and can be called on the script itself or on a script instance. If a method is called via the script itself and attempts to utilize script scope variables, an error will be thrown.
+
+#### Structure
+Scriptax has a structure which must be followed or else errors will be thrown or the script will complete with errors.
+
+The first few lines of a script are dedicated to `global_statements`. These statements include `extends`, `signature`, `options`, and finally `imports`. Scriptax is extremely strict when it comes to `global_statements` and thus they must even be in order. If you choose to use `extends` it must be the first statement in the file with no exceptions. If you choose to use `signature` it must come immediatly after `extends`, but if you aren't using `extends` then `signature` must be the first statement within the file, so on and so forth. The order of `global_statements` is as follows:
+
+1. `extends`
+2. `signature`
+3. `options`
+4. `imports`
+
+While `extends`, `signature`, and `options` should only ever occur 0 or 1 times within a script file, `imports` can occur 0..n times within a file. 
+
+After the `global_statements` feel free to use any non global statements as you see fit. 
+
 #### Scriptax Gotchas/Tips/Tricks
 * Accessing parameters as defined by `sig` should be done like so: `param.firstParam` where `firstParam` is the name of the parameter
 * For best compatbility with Apitax/Dashboard and Apitax/CLI, please start each Scriptax file with a `sig` line if nessecary. 
 * You can use arrays via dot notation
     * set someVar.1 = num1
     * set someVar.2 = num2
-    * set someVar.{{counter}} = num3
+    * set someVar.\<counter\> = num3
     * When doing this, the first usage of a variable must either be someVar = "{}" or an index as part of that object. Failure to do this will result in errors being thrown.
 
 #### Best Practices
@@ -291,9 +330,8 @@ Scriptax is an API first automation language. Scriptax is not a general purpose 
 * You can activate Apitax from the CLI directly without needing a wrapper package
 * Run the tests.py file found in the root Apitax directory, and supply the following arguments
     * --cli : (Optional) Quickly select CLI mode
-    * -- web : (Optional) Quickly select web server mode
+    * --api : (Optional) Quickly select web server mode
     * --debug : (Optional) Output the request response status, headers, and body
-    * --no-build : (Optional) Will not rebuild the UI assets on launch
     * -u <input> : (Optional) Specify the authentication username - Only applicable in CLI mode
     * -p : (Optional) Ask for password input right away. If -u is specified, but this is not, the application will ask for a new set of credentials for authentication. But, it will use the -u value for any username fields within further requests. This allows someone to authenticate as admin, but run commands applicable to another user.
     * -r <Input> : (Optional) The request - Only applicable in CLI mode
