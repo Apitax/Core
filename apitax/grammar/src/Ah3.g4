@@ -46,7 +46,7 @@ execute_statement : execute
          | async_execute ;
 
 expr :
-      REQUEST? labels
+      labels
       | inject
       | LPAREN expr RPAREN
       | <assoc=right> expr POW expr
@@ -330,10 +330,6 @@ SET : S E T ;
 ASYNC : A S Y N C ;
 AWAIT : A W A I T ;
 NEW : N E W ;
-
-
-/** KEYCHANGERS **/
-REQUEST : R COLON ;
 
 
 /** VARIABLES **/
