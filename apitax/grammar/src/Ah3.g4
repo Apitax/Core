@@ -139,7 +139,7 @@ attribute : API | SCRIPT ;
 
 extends_statement : EXTENDS LPAREN labels RPAREN ; 
 
-sig_statement : SIG sig_parameter (COMMA sig_parameter)* ;
+sig_statement : SIG LPAREN sig_parameter (COMMA sig_parameter)* RPAREN ;
 
 options_statement : OPTIONS LPAREN optional_parameters_block RPAREN;
 
