@@ -4,10 +4,10 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setup(
-    name='Apitax',
+    name='apitaxcore',
     packages=find_packages(),  # this must be the same as the name above
-    version='2.2.16',
-    description='Apitax combines the power of Scriptax and Commandtax into a quick and easy to use Python package to facillitate powerful Restful API Request Scripting',
+    version='3.0.0',
+    description='Provides utilities and integration code which may be useful when developing various drivers for use within the Apitax framework.',
     long_description=long_description,
     long_description_content_type="text/markdown",
     author='Shawn Clake',
@@ -21,18 +21,8 @@ setup(
         "Operating System :: OS Independent",
     ),
     install_requires=[
-        'click',
-        'bottle',
-        'requests',
-        'antlr4-python3-runtime',
-        'python-gitlab',
-        'pygithub',
-        'gitpython',
-        'connexion == 1.1.15',
-        'flask-jwt-extended',
-        'python_dateutil == 2.6.0',
-        'typing == 3.5.2.2',
-        'flask-cors',
-        'xmltodict',
+      'python_dateutil == 2.6.0',
+      'typing == 3.5.2.2',
+      'xmltodict',
     ],
 )
