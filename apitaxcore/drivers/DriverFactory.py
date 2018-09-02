@@ -1,10 +1,8 @@
 # Import Drivers below here
 
-from apitax.drivers.Drivers import Drivers
-
+from apitaxcore.drivers.Drivers import Drivers
 
 # End Driver Imports
-
 
 # Factory class for creating HttpPlug Drivers
 class DriverFactory:

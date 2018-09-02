@@ -1,16 +1,13 @@
-from apitax.ah.models.State import State
+from apitaxcore.models.State import State
 from apitax.config.Config import Config as ConfigConsumer
-from apitax.ah.flow.responses.ApitaxResponse import ApitaxResponse
-from apitax.ah.flow.requests.ApitaxRequest import ApitaxRequest
-from apitax.ah.builders.HeaderBuilder import HeaderBuilder
-from apitax.ah.builders.BodyBuilder import BodyBuilder
-from apitax.ah.catalog.CommandCatalog import CommandCatalog
-from apitax.ah.catalog.ScriptCatalog import ScriptCatalog
-from apitax.ah.catalog.EndpointCatalog import EndpointCatalog
+from apitaxcore.flow.responses.ApitaxResponse import ApitaxResponse
+from apitaxcore.flow.requests.ApitaxRequest import ApitaxRequest
+from apitaxcore.builders.HeaderBuilder import HeaderBuilder
+from apitaxcore.builders.BodyBuilder import BodyBuilder
+from apitaxcore.catalog.EndpointCatalog import EndpointCatalog
 
-from apitax.ah.models.Command import Command
-from apitax.ah.models.Credentials import Credentials
-from apitax.ah.models.User import User
+from apitaxcore.models.Credentials import Credentials
+from apitaxcore.models.User import User
 
 
 # Base class for driver plugs
@@ -27,13 +24,6 @@ class Driver:
     ##################
     # DRIVER METHODS #
     ##################
-
-    def isDriverScriptable(self) -> bool:
-        return False
-
-    # Whether Driver supports a custom command handler
-    def isDriverCommandable(self) -> bool:
-        return False
 
     # Whether the driver has custom configuration
     def isDriverConfigurable(self) -> bool:
@@ -86,46 +76,6 @@ class Driver:
     # If driver is blacklisted, return the blacklist
     def getDriverBlacklist(self) -> dict:
         return {}
-
-    # If driver is scriptable, returns the driver script catalog
-    def getDriverScriptCatalog(self) -> ScriptCatalog:
-        return ScriptCatalog()
-
-    # If driver is commandable, returns the driver command catalog
-    def getDriverCommandCatalog(self) -> CommandCatalog:
-        return CommandCatalog()
-
-    # Returns the contents of a script
-    def getDriverScript(self, path) -> str:
-        return ''
-
-    # Renames a script
-    def renameDriverScript(self, original, now) -> bool:
-        return False
-
-    # Creates/Updates a scripts content
-    def saveDriverScript(self, path, content) -> bool:
-        return False
-
-    # Deletes a script
-    def deleteDriverScript(self, path) -> bool:
-        return False
-
-    # Driver command handler
-    def handleDriverCommand(self, command: Command) -> ApitaxResponse:
-        return ApitaxResponse()
-
-    # Driver script handler
-    def handleDriverScript(self, command: Command) -> ApitaxResponse:
-        return ApitaxResponse()
-
-    # Event handler fired before the driver command handler executes
-    def onPreHandleDriverCommand(self, command: Command) -> Command:
-        return command
-
-    # Event handler fired before the driver script handler executes
-    def onPreHandleDriverScript(self, command: Command) -> Command:
-        return command
 
     ##################
     # API METHODS #

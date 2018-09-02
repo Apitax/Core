@@ -1,6 +1,6 @@
-from apitax.ah.builders.HeaderBuilder import HeaderBuilder
-from apitax.ah.builders.BodyBuilder import BodyBuilder
-from apitax.ah.flow.responses.LowLevelResponse import LowLevelResponse
+from apitaxcore.builders.HeaderBuilder import HeaderBuilder
+from apitaxcore.builders.BodyBuilder import BodyBuilder
+from apitaxcore.flow.responses.LowLevelResponse import LowLevelResponse
 
 
 class Response(LowLevelResponse):

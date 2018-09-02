@@ -1,6 +1,6 @@
-from apitax.drivers.Drivers import Drivers
-from apitax.logs.Log import Log
-from apitax.ah.models.State import State
+from apitaxcore.drivers.Drivers import Drivers
+from apitaxcore.logs.Log import Log
+from apitaxcore.models.State import State
 
 
 class LoadedDrivers:

@@ -1,5 +1,4 @@
 from requests import Request
-import json
 
 
 class LowLevelResponse:

@@ -1,4 +1,4 @@
-from apitax.ah.builders.Builder import Builder
+from apitaxcore.builders.Builder import Builder
 
 
 # Builder class for creating headers dynamically

@@ -21,8 +21,9 @@ setup(
         "Operating System :: OS Independent",
     ),
     install_requires=[
-      'python_dateutil == 2.6.0',
-      'typing == 3.5.2.2',
-      'xmltodict',
+        'python_dateutil == 2.6.0',
+        'typing == 3.5.2.2',
+        'xmltodict',
+        'requests',
     ],
 )

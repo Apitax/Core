@@ -2,7 +2,7 @@ import subprocess
 from multiprocessing import Process
 import atexit
 
-from apitax.logs.Log import Log
+from apitaxcore.logs.Log import Log
 
 
 class Npm:

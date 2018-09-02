@@ -1,7 +1,7 @@
-from apitax.ah.builders.HeaderBuilder import HeaderBuilder
-from apitax.ah.builders.BodyBuilder import BodyBuilder
-from apitax.ah.builders.QueryBuilder import QueryBuilder
-from apitax.ah.flow.requests.LowLevelRequest import LowLevelRequest
+from apitaxcore.builders.HeaderBuilder import HeaderBuilder
+from apitaxcore.builders.BodyBuilder import BodyBuilder
+from apitaxcore.builders.QueryBuilder import QueryBuilder
+from apitaxcore.flow.requests.LowLevelRequest import LowLevelRequest
 
 
 class Request(LowLevelRequest):

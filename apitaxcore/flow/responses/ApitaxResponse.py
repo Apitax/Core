@@ -1,6 +1,6 @@
-from apitax.ah.flow.responses.Response import Response
-from apitax.ah.models.State import State
-from apitax.utilities.Json import isJson
+from apitaxcore.flow.responses.Response import Response
+from apitaxcore.models.State import State
+from apitaxcore.utilities.Json import isJson
 
 import json
 import xmltodict

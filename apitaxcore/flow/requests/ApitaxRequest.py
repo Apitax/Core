@@ -1,6 +1,6 @@
-from apitax.ah.models.State import State
-from apitax.ah.flow.requests.Request import Request
-from apitax.ah.flow.responses.ApitaxResponse import ApitaxResponse
+from apitaxcore.models.State import State
+from apitaxcore.flow.requests.Request import Request
+from apitaxcore.flow.responses.ApitaxResponse import ApitaxResponse
 import re
 import xmltodict
 

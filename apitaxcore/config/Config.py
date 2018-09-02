@@ -1,8 +1,8 @@
 import configparser
-from apitax.utilities.Numbers import isNumber
-from apitax.utilities.Booleans import isBoolean, str2bool
-from apitax.utilities.Files import getRoot
-from apitax.ah.models.State import State
+from apitaxcore.utilities.Numbers import isNumber
+from apitaxcore.utilities.Booleans import isBoolean, str2bool
+from apitaxcore.utilities.Files import getRoot
+from apitaxcore.models.State import State
 
 # Reads the config and allows us to retrieve values from it
 class Config:

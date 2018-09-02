@@ -1,4 +1,4 @@
-from apitax.logs.Log import Log
+from apitaxcore.logs.Log import Log
 
 
 class Drivers:

@@ -1,5 +1,5 @@
 
-from apitax.logs.LogDriver import LogDriver
+from apitaxcore.logs.LogDriver import LogDriver
 
 class BufferedLog(LogDriver):
     def __init__ (self):
