@@ -16,16 +16,16 @@ class ApitaxResponse(Response):
 
     def getResponseBody(self) -> dict:
         body = super().getResponseBody()
-        if(self.responseFormat == 'json' and isJson(body)):
+        if (self.responseFormat == 'json' and isJson(body)):
             return json.loads(body)
-        if(self.responseFormat == 'xml'):
+        if (self.responseFormat == 'xml'):
             return xmltodict.parse(body)
         return {"response": body}
 
     def isStatusSuccess(self) -> bool:
-        if(self.getResponseStatusCode() > 299):
+        if (self.getResponseStatusCode() > 299):
             return False
-        if(self.getResponseStatusCode() < 200):
+        if (self.getResponseStatusCode() < 200):
             return False
         return True
 
@@ -40,3 +40,67 @@ class ApitaxResponse(Response):
         line += 'Body:' + '\n'
         line += str(self.getResponseBody()) + '\n'
         return line
+
+    ###################
+    # QUICK RESPONSES #
+    ###################
+
+    def res_success(self, body=None):
+        self.status = 200
+        if (body):
+            self.body.add(body)
+        return self
+
+    def res_created(self, body=None):
+        self.status = 201
+        if (body):
+            self.body.add(body)
+        return self
+
+    def res_no_content(self, body=None):
+        self.status = 204
+        if (body):
+            self.body.add(body)
+        return self
+
+    def res_not_modified(self, body=None):
+        self.status = 304
+        if (body):
+            self.body.add(body)
+        return self
+
+    def res_bad_request(self, body=None):
+        self.status = 400
+        if (body):
+            self.body.add(body)
+        return self
+
+    def res_unauthorized(self, body=None):
+        self.status = 401
+        if (body):
+            self.body.add(body)
+        return self
+
+    def res_forbidden(self, body=None):
+        self.status = 403
+        if (body):
+            self.body.add(body)
+        return self
+
+    def res_not_found(self, body=None):
+        self.status = 404
+        if (body):
+            self.body.add(body)
+        return self
+
+    def res_conflict(self, body=None):
+        self.status = 409
+        if (body):
+            self.body.add(body)
+        return self
+
+    def res_server_error(self, body=None):
+        self.status = 500
+        if (body):
+            self.body.add(body)
+        return self

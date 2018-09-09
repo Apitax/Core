@@ -1,5 +1,5 @@
 class Credentials:
-    def __init__(self, username='', password='', token='', extra={}):
+    def __init__(self, username=None, password=None, token=None, extra={}):
         self.username = username
         self.password = password
         self.token = token

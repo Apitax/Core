@@ -6,7 +6,7 @@ with open("README.md", "r") as fh:
 setup(
     name='apitaxcore',
     packages=find_packages(),  # this must be the same as the name above
-    version='3.0.0',
+    version='3.0.1',
     description='Provides utilities and integration code which may be useful when developing various drivers for use within the Apitax framework.',
     long_description=long_description,
     long_description_content_type="text/markdown",
