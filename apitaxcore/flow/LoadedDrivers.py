@@ -33,13 +33,13 @@ class LoadedDrivers:
 
     @staticmethod
     def getPrimaryDriver():
-        if (not State.config.has("drivers-primary") or State.config.get("drivers-primary") == "default"):
+        if not State.config or not State.config.has("drivers-primary") or State.config.get("drivers-primary") == "default":
             return LoadedDrivers.getDefaultDriver()
         return LoadedDrivers.getDriver((State.config.get('drivers-primary')).lower())
 
     @staticmethod
     def getAuthDriver():
-        if (not State.config.has("drivers-auth") or State.config.get("drivers-auth") == "default"):
+        if not State.config or not State.config.has("drivers-auth") or State.config.get("drivers-auth") == "default":
             return LoadedDrivers.getDefaultDriver()
         return LoadedDrivers.getDriver((State.config.get('drivers-auth')).lower())
 

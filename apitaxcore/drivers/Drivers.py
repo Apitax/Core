@@ -2,11 +2,7 @@ from apitaxcore.logs.Log import Log
 
 
 class Drivers:
-    drivers = None
-
-    @staticmethod
-    def initialize():
-        Drivers.drivers = {}
+    drivers = {}
 
     @staticmethod
     def add(name, driver):

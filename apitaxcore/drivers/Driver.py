@@ -1,5 +1,5 @@
 from apitaxcore.models.State import State
-from apitax.config.Config import Config as ConfigConsumer
+from apitaxcore.config.Config import Config as ConfigConsumer
 from apitaxcore.flow.responses.ApitaxResponse import ApitaxResponse
 from apitaxcore.flow.requests.ApitaxRequest import ApitaxRequest
 from apitaxcore.builders.HeaderBuilder import HeaderBuilder
