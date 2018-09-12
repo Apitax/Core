@@ -9,21 +9,21 @@
 # It includes a CLI as well as web interface
 # However the web interface will need to be customized per API usage
 
-from apitaxcore.flow.Setup import Setup
-from apitaxcore.flow.Startup import Startup
+#from apitaxcore.flow.Setup import Setup
+#from apitaxcore.flow.Startup import Startup
 
 
-class Apitax:
+#class Apitax:
 
     # Entry point of the program
-    def __init__(self, args: list):
+#    def __init__(self, args: list):
         # General procedure is as follows
         # Sets up logical defaults for parameters
         # Checks config for any overrides to those params
         # Checks cli params for any overrides to those params
         # CLI > Config > Default
-        setup = Setup(args).load()
-        startup = Startup(setup.usage, setup.username, setup.password, setup.watcher, setup.build, setup.script)
-        startup.execute(setup.command)
+#        setup = Setup(args).load()
+#        startup = Startup(setup.usage, setup.username, setup.password, setup.watcher, setup.build, setup.script)
+#        startup.execute(setup.command)
 
 
