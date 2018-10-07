@@ -1,5 +1,5 @@
 # Builder class for creating headers dynamically
-class Builder:
+class DictBuilder:
     def __init__(self):
         self.built = {}
 

@@ -1,7 +1,7 @@
-from apitaxcore.builders.Builder import Builder
+from apitaxcore.builders.DictBuilder import DictBuilder
 
 
 # Builder class for creating headers dynamically
-class BodyBuilder(Builder):
+class BodyBuilder(DictBuilder):
     def __init__(self):
         super().__init__()

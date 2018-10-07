@@ -18,7 +18,7 @@ class Driver:
         self.config = State.config
         self.driverConfig = None
         if (self.isDriverConfigurable()):
-            self.driverConfig = ConfigConsumer.read(sectionName=self.getDriverName())
+            self.driverConfig = ConfigConsumer.read(sectionName=self.getDriverName().title() + "Driver")
             # self.driverConfig = ConfigConsumer.read(sectionName=self.__class__.__name__)
 
     ##################

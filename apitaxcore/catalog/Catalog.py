@@ -1,11 +1,10 @@
-from apitaxcore.builders.Builder import Builder
+from apitaxcore.builders.ListBuilder import ListBuilder
 
 
-class Catalog(Builder):
+class Catalog(ListBuilder):
     def __init__(self, name):
         super().__init__()
         self.name = name
-        self.built = {self.name: {}}
 
-    def add(self, item):
-        super().add({self.name: item})
+    def get(self):
+        return {self.name: super().get()}

@@ -39,9 +39,9 @@ class LoadedDrivers:
 
     @staticmethod
     def getAuthDriver():
-        if not State.config or not State.config.has("drivers-auth") or State.config.get("drivers-auth") == "default":
+        if not State.config or not State.config.has("drivers-default-apitax-auth") or State.config.get("drivers-default-apitax-auth") == "default":
             return LoadedDrivers.getDefaultDriver()
-        return LoadedDrivers.getDriver((State.config.get('drivers-auth')).lower())
+        return LoadedDrivers.getDriver((State.config.get('drivers-default-apitax-auth')).lower())
 
     @staticmethod
     def getDriver(name):
