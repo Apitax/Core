@@ -30,16 +30,16 @@ class Request(LowLevelRequest):
 
     def preRequest(self):
         self.url = self.endpoint
-        if len(self.headerBuilder.built > 0):
+        if len(self.headerBuilder.built) > 0:
             self.headers = self.headerBuilder.built
 
-        if len(self.bodyBuilder.built > 0):
+        if len(self.bodyBuilder.built) > 0:
             self.body = self.bodyBuilder.built
 
-        if len(self.queryBuilder.built > 0):
+        if len(self.queryBuilder.built) > 0:
             self.params = self.queryBuilder.built
             
-        if len(self.cookieBuilder.built > 0):
+        if len(self.cookieBuilder.built) > 0:
             self.cookies = self.cookieBuilder.built
 
         super().preRequest()
