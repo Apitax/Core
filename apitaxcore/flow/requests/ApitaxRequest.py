@@ -18,10 +18,10 @@ class ApitaxRequest(Request):
 
     def preRequest(self):
         self.endpoint = self.preEndpoint
-        if (self.path):
+        if self.path:
             self.injectPathData()
         super().preRequest()
-        if (self.requestFormat == 'xml'):
+        if self.requestFormat == 'xml':
             self.body = xmltodict.unparse(self.body)
 
     def postRequest(self):
@@ -54,7 +54,7 @@ class ApitaxRequest(Request):
         self.postRequest()
 
     def getResponse(self, format=None) -> ApitaxResponse:
-        if(format):
+        if format:
             response = ApitaxResponse(responseFormat=format)
         else:
             response = ApitaxResponse(responseFormat=self.requestFormat)
@@ -65,7 +65,7 @@ class ApitaxRequest(Request):
         matches = re.findall('{[A-z0-9]{1,}}', self.preEndpoint)
         for match in matches:
             matchStr = match[1:-1]
-            if (matchStr in self.path):
+            if matchStr in self.path:
                 self.endpoint = self.endpoint.replace(match, self.path.get(matchStr))
             else:
                 self.log.log('Path data did not contain key for `' + matchStr + '`')
