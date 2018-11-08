@@ -3,6 +3,7 @@ from apitaxcore.flow.requests.Request import Request
 from apitaxcore.flow.responses.ApitaxResponse import ApitaxResponse
 import re
 import xmltodict
+import json
 
 
 class ApitaxRequest(Request):
@@ -21,7 +22,9 @@ class ApitaxRequest(Request):
         if self.path:
             self.injectPathData()
         super().preRequest()
-        if self.requestFormat == 'xml':
+        if self.requestFormat == 'json':
+            self.body = json.dumps(self.body)
+        elif self.requestFormat == 'xml':
             self.body = xmltodict.unparse(self.body)
 
     def postRequest(self):
@@ -73,7 +76,7 @@ class ApitaxRequest(Request):
     def getDebugRequest(self):
         line = ''
         line += 'Endpoint:        ' + self.preEndpoint + '\n'
-        line += 'Formed Endpoint: ' + self.formedEndpoint() + '\n'
+        line += 'Formed Endpoint: ' + self.formedEndpoint + '\n'
         line += 'Headers:' + '\n'
         if (self.options.sensitive):
             line += 'Headers are not shown as it contains sensitive data. ie. password' + '\n'
